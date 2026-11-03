@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #faf7eb;
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+      /* The app's splash: the wordmark gathers in over a breathing hairline (Vesper/App/Splash.swift) */
+      #opening {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 36px;
+        background: #faf7eb;
+        font-family: -apple-system, "SF Pro Display", sans-serif;
+      }
+      #wordmark {
+        font-size: 132px;
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+      #hairline {
+        width: 120px;
+        height: 6px;
+        border-radius: 3px;
+        background: #963c5a;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Skeleton: the opening shot only, to prove preview and render. The film's shots come from
+      SPEC.md once a storyline in STORYLINES.md is picked; footage from footage/README.md.
+    -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="3"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="opening" class="clip" data-start="0" data-duration="3" data-track-index="1">
+        <span id="wordmark">Vesper</span>
+        <span id="hairline"></span>
+      </div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#wordmark", { opacity: 0, letterSpacing: "42px" }, { opacity: 1, letterSpacing: "12px", duration: 0.8, ease: "power3.out" }, 0.15);
+      tl.fromTo("#hairline", { opacity: 0, scaleX: 0.3 }, { opacity: 1, scaleX: 1, duration: 0.9, ease: "sine.inOut" }, 0.15);
+      tl.to("#hairline", { scaleX: 0.3, opacity: 0.4, duration: 0.9, ease: "sine.inOut" }, 1.05);
+      tl.to("#hairline", { scaleX: 1, opacity: 1, duration: 0.9, ease: "sine.inOut" }, 1.95);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+# HyperFrames local state and check / snapshot output
+.hyperframes/
+.thumbnails/
+.waveform-cache/
+# Rendered videos (large; publish separately)
+renders/
+# Simulator recordings: raw takes and their 30 fps conversions (rebuild with footage/README.md)
+footage/raw/
+footage/*.mp4
