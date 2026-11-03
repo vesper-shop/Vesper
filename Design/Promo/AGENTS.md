@@ -9,8 +9,9 @@ the `hyperframes` CLI previews in the browser and renders to MP4. Docs: `npx hyp
 1. `STORYLINES.md`: three candidate films. One is picked.
 2. `SPEC.md`: the picked film shot by shot: goal, timing, look, motion, each shot's source take
    and time, sound, banned moves, QA times. Nothing is built before it.
-3. `footage/`: the app recorded from the iOS Simulator with `scripts/record.sh`; the table in
-   `footage/README.md` lists every take and how it was made.
+3. `assets/`: public data and pages the redraw uses; `scripts/record.sh` takes Simulator
+   references to check the redraw against (`footage/README.md`); `scripts/soundtrack.py`
+   synthesises the music and effects into `assets/audio/soundtrack.m4a`.
 4. `index.html` and `compositions/`: the film. Then check, look at frames, render.
 5. `REVIEW.md`: what was measured, what was looked at, what was not checked, the weakest shot.
 
@@ -34,6 +35,8 @@ The CLI is pinned so the film re-renders identically. To move up:
 3. Sub-compositions are referenced with `data-composition-src="compositions/<file>.html"`.
 4. Footage without its own sound is `muted`; music and effects are separate `<audio>`.
 5. Deterministic only: no `Date.now()`, `Math.random()` or network fetches.
-6. Every screen is the app's own recording. Nothing is redrawn or mocked, and no copy claims
-   more than the app's README.
+6. App screens are redrawn in the DOM from the app's SwiftUI source (Theme tokens, layouts,
+   copy), so every element can move on its own and stays sharp when pushed in. They show
+   public data only (`assets/data`), are checked against real Simulator screenshots, and no
+   copy claims more than the app's README.
 7. Run `npm run check` after every change and look at snapshots of what changed.

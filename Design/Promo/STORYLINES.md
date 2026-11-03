@@ -3,7 +3,19 @@
 Three candidate films for the Vesper promo (35–45 s, music and effects, no voiceover). One gets
 picked and written up as `SPEC.md`, shot by shot, before any composition is built.
 
-## A. Evening Star (recommended)
+## D. The Series (picked, see `SPEC.md`)
+
+- **Device / form**: a public introduction, told in the third person: the Apple app first, the
+  series it belongs to second.
+- **What the viewer sees and feels**: the icon is tapped and Vesper opens; Memos, Moment and
+  Atlas each get a beat, then one sign-in; the web and the desktop pages fan out behind it; the
+  end card asks to follow the maker on X.
+- **First two seconds**: the app icon landing alone on paper, then stepping aside for the name.
+- **Look**: paper palette, the app redrawn in the DOM from its SwiftUI source, a serif italic
+  wordmark with the evening star.
+- **Sound**: one synthesised D major track; taps, whooshes and bells on the cuts.
+
+## A. Evening Star
 
 - **Device / form**: a day passing; the app's appearance follows the light.
 - **What the viewer sees and feels**: one day kept in Vesper. Morning on paper-white: a memo is

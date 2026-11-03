@@ -1,0 +1,1063 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <div id="app" data-composition-id="app" data-start="0" data-duration="23.5" data-width="1920" data-height="1080">
+      <!--
+        The app, redrawn in the DOM from its SwiftUI source (Theme.swift, MemoCard, MomentTimeline,
+        AtlasView, SettingsView) so each element can move on its own. Content is public only:
+        assets/data (memos?publicOnly, public photos) and assets/map-britain.png (OpenFreeMap positron
+        at MapCamera.britain, paper recoloured as TileMap does). Sizes are points; .screen scales 1.08.
+      -->
+      <style>
+        #app .device {
+          position: absolute;
+          left: 1210px;
+          top: 60px;
+          width: 450px;
+          height: 960px;
+          border-radius: 80px;
+          background: #1a1917;
+          box-shadow: 0 40px 100px rgba(26, 25, 23, 0.28);
+        }
+        #app .screen {
+          position: absolute;
+          left: 8px;
+          top: 8px;
+          width: 402px;
+          height: 874px;
+          border-radius: 66px;
+          overflow: hidden;
+          transform: scale(1.08);
+          transform-origin: 0 0;
+          background: #faf7eb;
+          color: #1a1a1a;
+          font-family: -apple-system, "SF Pro Text", sans-serif;
+        }
+        #app .layer {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+        }
+        #memos,
+        #moment,
+        #atlas,
+        #settings,
+        #launch,
+        #tabbar {
+          opacity: 0;
+        }
+        /* the scroll edge: content fades out under the status bar and the navigation */
+        #app .edge {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: 168px;
+          z-index: 8;
+          background: linear-gradient(#faf7eb 0%, #faf7eb 62%, rgba(250, 247, 235, 0) 100%);
+        }
+        #moment .edge {
+          height: 120px;
+        }
+        #app .glass {
+          background: rgba(255, 255, 255, 0.58);
+          -webkit-backdrop-filter: blur(14px) saturate(1.7);
+          backdrop-filter: blur(14px) saturate(1.7);
+          border: 0.5px solid rgba(255, 255, 255, 0.85);
+          box-shadow:
+            0 8px 24px rgba(0, 0, 0, 0.07),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        #app svg {
+          display: block;
+        }
+
+        /* the status bar record.sh pins: 9:41, full signal, charged */
+        #app .status {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: 54px;
+          z-index: 20;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 6px 34px 0 52px;
+          color: #fff;
+          font: 600 17px/1 -apple-system, "SF Pro Text", sans-serif;
+        }
+        #app .status svg > :not([fill="none"]) {
+          fill: currentColor;
+        }
+        #app .status .right {
+          display: flex;
+          gap: 7px;
+          align-items: center;
+        }
+
+        #home {
+          background: linear-gradient(175deg, #23213f 0%, #4a3366 34%, #963c5a 68%, #e8977a 100%);
+        }
+        #home .apps {
+          position: absolute;
+          left: 31px;
+          top: 72px;
+          display: grid;
+          grid-template-columns: repeat(4, 64px);
+          gap: 22px 28px;
+        }
+        #home .app {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          font-weight: 500;
+          color: #fff;
+          text-shadow: 0 1px 3px rgba(40, 20, 60, 0.35);
+        }
+        #home .icon {
+          width: 64px;
+          height: 64px;
+          border-radius: 15px;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 12px rgba(40, 20, 60, 0.18);
+        }
+        #home .icon img {
+          width: 100%;
+          height: 100%;
+        }
+        #home .dock .apps {
+          position: static;
+          padding: 16px 0 0 19px;
+        }
+        #home .search {
+          position: absolute;
+          left: 151px;
+          bottom: 128px;
+          width: 100px;
+          height: 30px;
+          border-radius: 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.85);
+        }
+        #home .glass {
+          background: rgba(255, 255, 255, 0.18);
+          border-color: rgba(255, 255, 255, 0.35);
+          box-shadow:
+            0 8px 24px rgba(20, 10, 40, 0.18),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        #home .dock {
+          position: absolute;
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+          height: 96px;
+          border-radius: 38px;
+        }
+
+        #launch {
+          background: #faf7eb;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+        }
+        #launch .from {
+          position: absolute;
+          width: 64px;
+          height: 64px;
+          -webkit-mask-image: radial-gradient(circle, #000 52%, transparent 72%);
+          mask-image: radial-gradient(circle, #000 52%, transparent 72%);
+        }
+        #launch .word {
+          font: 600 22px/1 -apple-system, "SF Pro Display", sans-serif;
+          letter-spacing: 4px;
+        }
+        #launch .bar {
+          width: 40px;
+          height: 2px;
+          border-radius: 1px;
+          background: #963c5a;
+        }
+
+        #app .nav {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 62px;
+          height: 44px;
+          z-index: 10;
+        }
+        #app .nav .title {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 12px;
+          text-align: center;
+          font-size: 17px;
+          font-weight: 600;
+        }
+        #app .nav .tools {
+          position: absolute;
+          right: 16px;
+          top: 0;
+          height: 44px;
+          padding: 0 14px;
+          border-radius: 22px;
+          display: flex;
+          align-items: center;
+          gap: 22px;
+          color: #963c5a;
+        }
+
+        #app .tags {
+          position: absolute;
+          left: 16px;
+          top: 120px;
+          display: flex;
+          gap: 8px;
+          z-index: 9;
+          white-space: nowrap;
+        }
+        #app .chip {
+          padding: 7px 12px;
+          border-radius: 18px;
+          font-size: 15px;
+          font-weight: 500;
+          display: flex;
+          gap: 4px;
+          align-items: baseline;
+        }
+        #app .chip i {
+          font: normal 11px ui-monospace, "SF Mono", monospace;
+          opacity: 0.65;
+        }
+        #feed {
+          position: absolute;
+          left: 20px;
+          right: 21px;
+          top: 172px;
+        }
+        #app .pinned {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          height: 28px;
+          margin: 0 0 12px 4px;
+          font-size: 15px;
+          color: #726e69;
+        }
+        #app .pinned b {
+          font: 400 14px ui-monospace, "SF Mono", monospace;
+          color: #726e69;
+        }
+        #app .pinned span {
+          color: #1a1a1a;
+        }
+        #app .card {
+          position: relative;
+          padding: 20px;
+          border-radius: 10px;
+          background: #faf7eb;
+          border: 1px solid #e8e0d0;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          margin-bottom: 20px;
+        }
+        #app .meta {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          color: #726e69;
+          margin-bottom: 12px;
+        }
+        #app .meta .gap {
+          flex: 1;
+        }
+        #app .body {
+          font-size: 16px;
+          line-height: 1.5;
+        }
+        #app .body a {
+          color: #963c5a;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+        #app .body.clamp {
+          max-height: 120px;
+          overflow: hidden;
+          -webkit-mask-image: linear-gradient(#000 60%, transparent);
+          mask-image: linear-gradient(#000 60%, transparent);
+        }
+        #app .badges {
+          display: flex;
+          gap: 8px;
+          margin-top: 12px;
+        }
+        #app .badge {
+          padding: 3px 8px;
+          border-radius: 4px;
+          border: 1px solid rgba(150, 60, 90, 0.4);
+          color: #963c5a;
+          font-size: 12px;
+          font-weight: 500;
+        }
+        #deck {
+          position: relative;
+        }
+        #deck .peek {
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 48px;
+          bottom: -9px;
+          border-radius: 10px;
+          background: #faf7eb;
+          border: 1px solid #e8e0d0;
+          transform: scaleX(0.95);
+          transform-origin: bottom;
+        }
+        #app .fab {
+          position: absolute;
+          right: 21px;
+          bottom: 104px;
+          width: 58px;
+          height: 58px;
+          border-radius: 50%;
+          background: #963c5a;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 8px 20px rgba(150, 60, 90, 0.35);
+          z-index: 9;
+        }
+
+        #stream {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 112px;
+        }
+        #app .day {
+          display: flex;
+          justify-content: center;
+          margin: 24px 0 8px;
+        }
+        #app .day span {
+          padding: 5px 12px;
+          border-radius: 14px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #726e69;
+        }
+        #app .bubble {
+          width: 354px;
+          margin: 0 auto 4px;
+          background: #f5f2ec;
+          border: 1px solid #e8e0d0;
+          border-radius: 20px;
+          overflow: hidden;
+        }
+        #app .bubble.top {
+          border-bottom-right-radius: 6px;
+        }
+        #app .bubble.mid {
+          border-top-right-radius: 6px;
+          border-bottom-right-radius: 6px;
+        }
+        #app .bubble.end {
+          border-top-right-radius: 6px;
+        }
+        #app .photo {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 4 / 3;
+          overflow: hidden;
+        }
+        #app .photo img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        #app .photo .hash {
+          filter: blur(14px) saturate(1.2);
+          transform: scale(1.15);
+        }
+        #app .caption {
+          padding: 12px 16px 8px;
+        }
+        #app .caption h4 {
+          font-size: 17px;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+        #app .caption p {
+          font-size: 16px;
+          line-height: 1.45;
+          display: -webkit-box;
+          -webkit-line-clamp: 8;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        #app .caption time {
+          display: block;
+          text-align: right;
+          margin-top: 8px;
+          font: 400 11px ui-monospace, "SF Mono", monospace;
+          color: #726e69;
+        }
+
+        #map {
+          position: absolute;
+          inset: 0;
+          transform-origin: 260px 520px;
+        }
+        #map > img {
+          position: absolute;
+          inset: 0;
+          width: 402px;
+          height: 874px;
+        }
+        #app .pin {
+          position: absolute;
+          width: 44px;
+          height: 44px;
+          margin: -44px 0 0 -22px;
+          border-radius: 6px;
+          border: 2px solid #fff;
+          overflow: hidden;
+          background: #f5f2ec;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+        }
+        #app .pin img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        #app .credit {
+          position: absolute;
+          left: 14px;
+          bottom: 92px;
+          font-size: 9px;
+          color: rgba(26, 26, 26, 0.78);
+        }
+        #atlas .tools {
+          gap: 20px;
+        }
+
+        /* AtlasCalendar always lists the current month, so today has a cell */
+        #cal {
+          opacity: 0;
+        }
+        #months {
+          position: absolute;
+          left: 16px;
+          right: 16px;
+          top: 116px;
+        }
+        #app .month {
+          margin-bottom: 28px;
+        }
+        #app .month header {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          margin-bottom: 10px;
+        }
+        #app .month h3 {
+          font-size: 20px;
+          font-weight: 600;
+        }
+        #app .month header span,
+        #app .grid i {
+          font: normal 11px ui-monospace, "SF Mono", monospace;
+          color: #726e69;
+        }
+        #app .grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 6px;
+        }
+        #app .grid i {
+          text-align: center;
+        }
+        #app .cell {
+          position: relative;
+          aspect-ratio: 1;
+          border-radius: 6px;
+          overflow: hidden;
+          background: rgba(245, 242, 236, 0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font: 400 11px ui-monospace, "SF Mono", monospace;
+          color: rgba(114, 110, 105, 0.6);
+        }
+        #app .cell.photo {
+          display: block;
+          background: #f5f2ec;
+          color: #fff;
+          font-weight: 600;
+        }
+        #app .cell.photo img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        #app .cell.photo b {
+          position: absolute;
+          left: 4px;
+          top: 4px;
+          text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+        }
+        #app .cell.photo em {
+          position: absolute;
+          right: 3px;
+          bottom: 3px;
+          padding: 0 4px;
+          border-radius: 8px;
+          background: rgba(0, 0, 0, 0.78);
+          font-style: normal;
+          font-weight: 400;
+        }
+        #app .cell.today {
+          color: #963c5a;
+          font-weight: 600;
+          box-shadow: inset 0 0 0 2px #963c5a;
+        }
+
+        #settings .form {
+          position: absolute;
+          left: 16px;
+          right: 16px;
+          top: 120px;
+        }
+        #app .group {
+          background: #fff;
+          border-radius: 26px;
+          padding: 0 20px;
+          margin-bottom: 8px;
+        }
+        #app .row {
+          min-height: 52px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 17px;
+          border-bottom: 0.5px solid #e8e0d0;
+        }
+        #app .row:last-child {
+          border-bottom: 0;
+        }
+        #app .row .dim {
+          color: #726e69;
+        }
+        #app .head {
+          margin: 22px 20px 8px;
+          font-size: 13px;
+          color: #726e69;
+          text-transform: uppercase;
+        }
+        #app .foot {
+          margin: 0 20px 18px;
+          font-size: 13px;
+          line-height: 1.35;
+          color: #726e69;
+        }
+        #account {
+          position: relative;
+          height: 52px;
+          overflow: hidden;
+        }
+        #account > div {
+          position: absolute;
+          left: 20px;
+          right: 20px;
+          top: 0;
+        }
+        #app .who {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          height: 76px;
+        }
+        #app .who .avatar {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          overflow: hidden;
+          border: 1px solid #e8e0d0;
+          background: #f5f2ec;
+        }
+        #app .who .avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        #app .bone {
+          border-radius: 4px;
+          background: #e8e0d0;
+        }
+
+        #app .tabbar {
+          position: absolute;
+          left: 20px;
+          right: 21px;
+          bottom: 25px;
+          height: 62px;
+          border-radius: 31px;
+          z-index: 12;
+        }
+        #app .tabbar .sel {
+          position: absolute;
+          left: 5px;
+          top: 4px;
+          width: 92px;
+          height: 54px;
+          border-radius: 27px;
+          background: rgba(26, 26, 26, 0.07);
+        }
+        #app .tabbar .tab {
+          position: absolute;
+          top: 0;
+          width: 90px;
+          height: 62px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          font-size: 11px;
+          font-weight: 500;
+        }
+        #app .tabbar .tab.on {
+          color: #963c5a;
+        }
+
+        /* touches are not drawn by the Simulator; a soft dot marks each one */
+        #app .touch {
+          position: absolute;
+          width: 44px;
+          height: 44px;
+          margin: -22px 0 0 -22px;
+          border-radius: 50%;
+          background: rgba(26, 26, 26, 0.18);
+          border: 2px solid rgba(255, 255, 255, 0.8);
+          z-index: 30;
+          opacity: 0;
+        }
+
+        #app .stack {
+          position: relative;
+          height: 380px;
+        }
+        #app .stack > div {
+          position: absolute;
+          inset: 0;
+        }
+        #a-memos,
+        #a-moment,
+        #a-atlas,
+        #a-signin {
+          opacity: 0;
+        }
+      </style>
+
+      <div class="col">
+        <div class="stack">
+          <div id="a-hook">
+            <div class="kicker">VESPER FOR APPLE</div>
+            <div class="title">Memos, Moment<br />and Atlas,</div>
+            <div class="sub">native on iPhone, iPad and Mac, in Liquid Glass.</div>
+          </div>
+          <div id="a-memos"><div class="kicker">01 · MEMOS</div><div class="title">Write it down.</div><div class="sub">A card feed with Markdown, pins, search and tags.</div></div>
+          <div id="a-moment"><div class="kicker">02 · MOMENT</div><div class="title">Keep the light.</div><div class="sub">A timeline of photos, sharpening out of their ThumbHash blur.</div></div>
+          <div id="a-atlas"><div class="kicker">03 · ATLAS</div><div class="title">Find it again.</div><div class="sub">Every photo on a calendar and on a map.</div></div>
+          <div id="a-signin"><div class="kicker">ONE SIGN-IN</div><div class="title">you-find.me</div><div class="sub">OAuth with PKCE; the session stays in the Keychain.</div></div>
+        </div>
+      </div>
+
+      <div class="device">
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span>
+            <span class="right">
+              <svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3" height="4" rx="1" /><rect x="5" y="5.5" width="3" height="6.5" rx="1" /><rect x="10" y="3" width="3" height="9" rx="1" /><rect x="15" y="0" width="3" height="12" rx="1" /></svg>
+              <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 2.2c2.4 0 4.6.9 6.2 2.5l1.2-1.2C13.9 1.5 11.3.4 8.5.4S3.1 1.5 1.1 3.5l1.2 1.2C3.9 3.1 6.1 2.2 8.5 2.2zm0 3.4c1.5 0 2.8.6 3.8 1.5l1.2-1.2C12.2 4.6 10.4 3.8 8.5 3.8S4.8 4.6 3.5 5.9l1.2 1.2c1-.9 2.3-1.5 3.8-1.5zm0 3.4c.6 0 1.1.2 1.5.6L8.5 11.1 7 9.6c.4-.4.9-.6 1.5-.6z" /></svg>
+              <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4" /><rect x="2" y="2" width="20" height="9" rx="2" /><rect x="24.5" y="4.5" width="1.5" height="4" rx=".75" opacity=".4" /></svg>
+            </span>
+          </div>
+
+          <div class="layer" id="home">
+            <div class="apps" id="grid"></div>
+            <div class="search glass">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 21 21" /></svg>
+              Search
+            </div>
+            <div class="dock glass"><div class="apps" id="dockapps"></div></div>
+          </div>
+
+          <!-- Display → Public: only public memos are on screen -->
+          <div class="layer" id="memos">
+            <div class="edge"></div>
+            <div class="nav">
+              <div class="title">Public</div>
+              <div class="tools glass">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 21 21" /></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z" /></svg>
+              </div>
+            </div>
+            <div class="tags">
+              <div class="chip glass">#思考<i>11</i></div>
+              <div class="chip glass">#成长<i>8</i></div>
+              <div class="chip glass">#摘录<i>4</i></div>
+              <div class="chip glass">#绘图<i>4</i></div>
+              <div class="chip glass">#社交<i>2</i></div>
+            </div>
+            <div id="feed">
+              <div class="pinned">
+                <svg class="chev" width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="#726e69" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l5 5-5 5" /></svg>
+                <b>pinned</b><span>2 entries</span>
+              </div>
+              <div id="deck">
+                <div class="peek"></div>
+                <div class="card" id="pin-a">
+                  <div class="meta">3 months ago <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z" /></svg><span class="gap"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="#963c5a"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" /></svg><svg width="18" height="18" viewBox="0 0 24 24" fill="#726e69"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></div>
+                  <div class="body">窝的主页: <a>https://you-find.me</a><br />窝的碎碎念: <a>https://memos.you-find.me</a><br />窝的相册: <a>https://moment.you-find.me</a></div>
+                </div>
+                <div class="card" id="pin-b">
+                  <div class="meta">6 months ago <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z" /></svg><span class="gap"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="#963c5a"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" /></svg><svg width="18" height="18" viewBox="0 0 24 24" fill="#726e69"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></div>
+                  <div class="body">你好👋 这是我的第一个memos 纪念一下</div>
+                  <div class="badges"><span class="badge">#日常</span></div>
+                </div>
+              </div>
+              <div id="rest">
+                <div class="card">
+                  <div class="meta">6 days ago <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z" /></svg><span class="gap"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="#726e69"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></div>
+                  <div class="body">测试一下 内容的管理和分发<br />——来自my-memos</div>
+                  <div class="badges"><span class="badge">#开发</span></div>
+                </div>
+                <div class="card">
+                  <div class="meta">1 week ago <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z" /></svg><span class="gap"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="#726e69"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></div>
+                  <div class="body clamp">感觉活人感真的成为这个时代互联网上最稀缺的东西了<br />仿佛昙花一现般转瞬即逝<br />在如今ai回复 机器人代理的时代 更是难能可贵<br /><br />因为没有人能保持高精力时刻向外输出积极向上的东西</div>
+                  <div class="badges"><span class="badge">#思考</span><span class="badge">#社交</span></div>
+                </div>
+                <div class="card">
+                  <div class="meta">4 months ago <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z" /></svg><span class="gap"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="#726e69"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></div>
+                  <div class="body">人离家越远 就离自己越近 在举目无亲的地方才能真正地做自己 因为家是由人构成的<br /><br />明道若昧 进道若退</div>
+                  <div class="badges"><span class="badge">#思考</span><span class="badge">#成长</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="fab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#faf7eb" stroke-width="2" stroke-linejoin="round"><rect x="3.5" y="5" width="15" height="15" rx="3.5" /><path d="M10 14l1-3.5 8.5-8.5 2.5 2.5L13.5 13 10 14z" fill="#963c5a" /></svg></div>
+          </div>
+
+          <div class="layer" id="moment">
+            <div class="edge"></div>
+            <div class="nav">
+              <div class="title">Moment</div>
+              <div class="tools glass">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5" /><rect x="13.5" y="3.5" width="7" height="7" rx="1.5" /><rect x="3.5" y="13.5" width="7" height="7" rx="1.5" /><rect x="13.5" y="13.5" width="7" height="7" rx="1.5" /></svg>
+                <svg width="24" height="22" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7h4l2-3h6l2 3h4v12H3z" /><circle cx="12" cy="12.5" r="3.5" /></svg>
+              </div>
+            </div>
+            <div id="stream">
+              <div class="day"><span class="glass">Thu, September 17</span></div>
+              <div class="bubble">
+                <div class="photo"><img class="hash" src="assets/photos/5ae4d6db-e641-48ee-9411-9122d40133dd.jpg" alt="" /><img class="sharp" src="assets/photos/5ae4d6db-e641-48ee-9411-9122d40133dd.jpg" alt="" /></div>
+                <div class="caption"><h4>下次再见或许是明年</h4><p>在周四早上就离开爱丁堡了 今天真好是晴天就回头拍了一张留念</p><time>08:24</time></div>
+              </div>
+              <div class="day"><span class="glass">Wed, September 16</span></div>
+              <div class="bubble top">
+                <div class="photo"><img class="hash" src="assets/photos/7c459f25-5417-4a0f-b04e-da765edff4ec.jpg" alt="" /><img class="sharp" src="assets/photos/7c459f25-5417-4a0f-b04e-da765edff4ec.jpg" alt="" /></div>
+                <div class="caption"><h4>初到高地</h4><p>报了一个一百多镑的高地游 从市区出发在尼斯湖绕一圈返回</p><time>11:28</time></div>
+              </div>
+              <div class="bubble mid">
+                <div class="photo"><img class="hash" src="assets/photos/b389e5e8-3adb-427d-bbad-444ea7b49db1.jpg" alt="" /><img class="sharp" src="assets/photos/b389e5e8-3adb-427d-bbad-444ea7b49db1.jpg" alt="" /></div>
+                <div class="caption"><h4>尼斯湖没有水怪</h4><p>没吃午饭 饿着肚子坐游船逛的尼斯湖 湖是细长的一条 大概180米深</p><time>13:07</time></div>
+              </div>
+              <div class="bubble end">
+                <div class="photo"><img class="hash" src="assets/photos/ec84d713-6ba3-4e05-ad15-4ab20f14fca1.jpg" alt="" /><img class="sharp" src="assets/photos/ec84d713-6ba3-4e05-ad15-4ab20f14fca1.jpg" alt="" /></div>
+                <div class="caption"><h4>高地风景</h4><p>感觉很梦幻 这样的场景似乎只能在电影中看到</p><time>16:19</time></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="layer" id="atlas">
+            <div id="map">
+              <img src="assets/map-britain.png" alt="" />
+              <div id="pins"></div>
+            </div>
+            <div class="nav">
+              <div class="tools glass">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="5" width="17" height="15" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4" stroke-linecap="round" /></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7.2 2.3L12.5 20z" /></svg>
+                <svg width="24" height="22" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7h4l2-3h6l2 3h4v12H3z" /><circle cx="12" cy="12.5" r="3.5" /></svg>
+              </div>
+            </div>
+            <div class="credit">© OpenFreeMap © OpenMapTiles © OpenStreetMap</div>
+            <div class="layer" id="cal" style="background: #faf7eb">
+              <div class="edge"></div>
+              <div class="nav">
+                <div class="title">Calendar</div>
+                <div class="tools glass">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 5.5 9 3l6 2.5L21 3v15.5L15 21l-6-2.5L3 21z" /><path d="M9 3v15.5M15 5.5V21" /></svg>
+                  <svg width="24" height="22" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7h4l2-3h6l2 3h4v12H3z" /><circle cx="12" cy="12.5" r="3.5" /></svg>
+                </div>
+              </div>
+              <div id="months"></div>
+            </div>
+          </div>
+
+          <!-- the account's email line is left out: it is not public -->
+          <div class="layer" id="settings">
+            <div class="nav"><div class="title">Settings</div></div>
+            <div class="form">
+              <div class="group" id="account">
+                <div id="acc-out"><div class="row" style="color: #963c5a; border: 0; height: 52px; justify-content: flex-start; gap: 10px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5" /><circle cx="12" cy="10" r="3.2" /><path d="M6 18.3c1.5-2.2 3.6-3.3 6-3.3s4.5 1.1 6 3.3" /></svg>Sign in with you-find.me</div></div>
+                <div id="acc-wait" style="opacity: 0"><div class="who"><div class="avatar" style="background: #e8e0d0; border: 0"></div><div><div class="bone" style="width: 120px; height: 16px; margin-bottom: 10px"></div><div class="bone" style="width: 180px; height: 11px"></div></div></div></div>
+                <div id="acc-in" style="opacity: 0">
+                  <div class="who"><div class="avatar"><img src="assets/avatar.png" alt="" /></div><div style="font-size: 20px; font-weight: 600">Pleasure1234</div></div>
+                  <div class="row" style="color: #a03030; height: 52px">Sign Out</div>
+                </div>
+              </div>
+              <div class="head">Storage</div>
+              <div class="group">
+                <div class="row">Image Cache<span class="dim">24.6 MB</span></div>
+                <div class="row" style="color: #a03030">Clear Image Cache</div>
+              </div>
+              <div class="foot">Moment photos are kept on this device so they open instantly; they download again when needed.</div>
+              <div class="head">About</div>
+              <div class="group">
+                <div class="row">Version<span class="dim">1.0</span></div>
+                <div class="row" style="color: #963c5a">memos.you-find.me</div>
+                <div class="row" style="color: #963c5a">moment.you-find.me</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="layer" id="launch"><img class="from" src="assets/app-icon.png" alt="" /><span class="word">Vesper</span><span class="bar"></span></div>
+
+          <div class="tabbar glass" id="tabbar">
+            <div class="sel"></div>
+            <div class="tab on" id="tab-memos" style="left: 6px"><svg width="28" height="24" viewBox="0 0 28 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="2" width="22" height="20" rx="3.5" /><path d="M3 7.5h22M8 12.5h12M8 17h8" stroke-linecap="round" /></svg>Memos</div>
+            <div class="tab" id="tab-moment" style="left: 96px"><svg width="30" height="24" viewBox="0 0 30 24"><rect x="7" y="1.5" width="21" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="2" /><rect x="2" y="5.5" width="21" height="17" rx="3" fill="currentColor" /><circle cx="8" cy="11" r="2" fill="#faf7eb" /><path d="M4 21l6-6 4 4 3-3 5 5z" fill="#faf7eb" /></svg>Moment</div>
+            <div class="tab" id="tab-atlas" style="left: 182px"><svg width="26" height="24" viewBox="0 0 26 24" fill="currentColor"><path d="M2 4.5 8.5 2v17.5L2 22z" /><path d="M9.5 2l7 2.5V22l-7-2.5z" opacity=".55" /><path d="M17.5 4.5 24 2v17.5L17.5 22z" /></svg>Atlas</div>
+            <div class="tab" id="tab-settings" style="left: 268px"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M10.3 2h3.4l.6 2.7 1.8.8 2.4-1.5 2.4 2.4-1.5 2.4.8 1.8 2.7.6v3.4l-2.7.6-.8 1.8 1.5 2.4-2.4 2.4-2.4-1.5-1.8.8-.6 2.7h-3.4l-.6-2.7-1.8-.8-2.4 1.5-2.4-2.4 1.5-2.4-.8-1.8L1 13.7v-3.4l2.7-.6.8-1.8L3 5.5l2.4-2.4 2.4 1.5 1.8-.8zM12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6z" fill-rule="evenodd" /></svg>Settings</div>
+          </div>
+
+          <div class="touch" id="touch"></div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // Atlas pins: map.project() of each photo at capture time, same style and camera as the map
+          const pins = [
+            ["fc20de3d-5d7e-4958-94ae-5dbdb47edc66", 234.3, 490.9],
+            ["4c946140-33fd-4ef1-8483-16697b206b48", 234.3, 491.7],
+            ["30ec642e-4ba4-4dab-abe4-664b6efbfc37", 234.1, 491.2],
+            ["8da20b8e-8511-4589-8583-c5f92fe16f39", 234.2, 491.1],
+            ["ba8dcc8b-f074-4899-9c08-4a318469bf11", 234.5, 491.1],
+            ["44d44852-4be0-4c23-8947-85d4d81f8d66", 269.5, 521.7],
+            ["9c82da8d-6bea-425b-9540-50f9abcc8ee8", 269.5, 521.7],
+            ["de71f0de-74f3-457c-a414-7d628b7e81e5", 270.4, 521.3],
+            ["348bdd4b-43bc-4c4a-9c74-c283e513cd8b", 270.5, 521.1],
+            ["3aeb7b9e-4a47-48a0-8dac-f3ba7279040e", 271.3, 521.1],
+            ["8373615b-0615-41a6-9cba-d0da02e576e6", 270.4, 521.2],
+            ["1d673b02-73ac-43f5-958b-cea11b30ffdf", 271.7, 521.3],
+            ["b6db56cc-3e8b-4bf8-a048-f7d6199afe86", 269.4, 521.9],
+            ["5ae4d6db-e641-48ee-9411-9122d40133dd", 201.3, 343.3],
+            ["ec84d713-6ba3-4e05-ad15-4ab20f14fca1", 139.2, 298.9],
+            ["885f91f7-23b4-4c2a-90ee-25dda6190ef0", 137.6, 298.9],
+            ["8a24971d-a950-4f90-a782-d42e96098789", 137.6, 298.9],
+            ["b389e5e8-3adb-427d-bbad-444ea7b49db1", 150.2, 268.5],
+            ["7c459f25-5417-4a0f-b04e-da765edff4ec", 150.2, 284.7],
+            ["171420cf-bcad-465a-b4a8-ab470605b9a7", 202.3, 343.7],
+            ["a673bbef-7611-4e13-9f5b-42c3184ec7f3", 202.3, 343.7],
+            ["f5b6d33d-8d76-4397-bbce-3ceabdb5c1d5", 201.8, 341.4],
+            ["e61383a4-09c1-43b0-a640-da25a280f04b", 201.4, 343.3],
+            ["04c7c2f5-5709-4127-b29b-d32f61570d6b", 201.4, 343.4],
+            ["1a60f4d2-9b8a-4c9a-94b4-b6c4a754cbe7", 266.4, 492.2],
+          ];
+          const host = document.getElementById("pins");
+          for (const [id, x, y] of pins) {
+            const el = document.createElement("div");
+            el.className = "pin";
+            el.style.left = x + "px";
+            el.style.top = y + "px";
+            el.innerHTML = `<img src="assets/photos/${id}.jpg" alt="" />`;
+            host.appendChild(el);
+          }
+        })();
+
+        (() => {
+          // [label, tile gradient, glyph]; Vesper is the only real icon on the page
+          const glyph = (d, fill = false) => `<svg width="34" height="34" viewBox="0 0 24 24" fill="${fill ? "#fff" : "none"}" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+          const apps = [
+            ["Clock", "#2c2a4a,#4b4778", glyph('<circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.5 2" />')],
+            ["Weather", "#5aa9e6,#8fd0f5", glyph('<circle cx="9" cy="9" r="3.5" /><path d="M7 18h9.5a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.4 1.6A2.7 2.7 0 0 0 7 18z" />')],
+            ["Camera", "#3d3d42,#6d6d75", glyph('<path d="M4 8h3.5L9 6h6l1.5 2H20v10H4z" /><circle cx="12" cy="13" r="3.2" />')],
+            ["Music", "#f0776b,#f7a593", glyph('<path d="M9 17V6l10-2v11" /><circle cx="6.5" cy="17" r="2.5" /><circle cx="16.5" cy="15" r="2.5" />')],
+            ["Notes", "#f2b544,#f7d27e", glyph('<rect x="5" y="4" width="14" height="16" rx="2.5" /><path d="M8.5 9h7M8.5 12.5h7M8.5 16h4" />')],
+            ["Vesper", "", '<img src="assets/app-icon.png" alt="" />'],
+            ["Maps", "#55b57a,#8fd6a4", glyph('<path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z" /><circle cx="12" cy="11" r="2.2" />')],
+            ["Mail", "#4f7fe0,#7fa8f2", glyph('<rect x="3.5" y="6" width="17" height="12" rx="2.5" /><path d="m4.5 7.5 7.5 6 7.5-6" />')],
+            ["Files", "#3f8fd8,#79b8ef", glyph('<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" />')],
+            ["Books", "#e9823f,#f4aa6c", glyph('<path d="M4 5.5c3-1.3 5.7-1.3 8 0v13c-2.3-1.3-5-1.3-8 0zM20 5.5c-3-1.3-5.7-1.3-8 0v13c2.3-1.3 5-1.3 8 0z" />')],
+            ["Translate", "#6c63d9,#9a92f0", glyph('<path d="M4 6h8M8 4v2M5.5 6c.5 3 2.5 5.5 5.5 6.5M10.5 6c-.5 3-2.5 5.5-5.5 6.5M13 20l3.5-8 3.5 8M14.2 17.2h4.6" />')],
+            ["Clips", "#d65a8c,#ee8db3", glyph('<rect x="4" y="5" width="16" height="14" rx="3" /><path d="m10.5 9.5 4 2.5-4 2.5z" fill="#fff" />')],
+          ];
+          const dock = [
+            ["", "#43b36b,#7dd69a", glyph('<path d="M6.5 4.5 9 4l1.5 4-2 1.3a10 10 0 0 0 5.2 5.2l1.3-2 4 1.5-.5 2.5a2 2 0 0 1-2 1.5A14.5 14.5 0 0 1 5 6.5a2 2 0 0 1 1.5-2z" />')],
+            ["", "#3b82f6,#7ab0fb", glyph('<circle cx="12" cy="12" r="8.5" /><path d="m15.5 8.5-2.2 4.8-4.8 2.2 2.2-4.8z" fill="#fff" />')],
+            ["", "#42c06a,#86e0a0", glyph('<path d="M12 4.5c4.7 0 8.5 3 8.5 6.8s-3.8 6.8-8.5 6.8c-1 0-2-.1-2.9-.4L5 19.5l1.1-3.6C4.6 14.7 3.5 13.1 3.5 11.3 3.5 7.5 7.3 4.5 12 4.5z" />')],
+            ["", "#f25f5c,#f79a80", glyph('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />')],
+          ];
+          const tile = ([label, colors, inner]) =>
+            `<div class="app${label === "Vesper" ? " vesper" : ""}"><div class="icon" style="${colors ? `background: linear-gradient(160deg, ${colors})` : ""}">${inner}</div>${label ? `<span>${label}</span>` : ""}</div>`;
+          document.getElementById("grid").innerHTML = apps.map(tile).join("");
+          document.getElementById("dockapps").innerHTML = dock.map(tile).join("");
+        })();
+
+        (() => {
+          // [title, first weekday (0 = Sunday), days, photo count, today, {day: [cover id, count]}]
+          const months = [
+            ["November 2026", 0, 30, 0, 3, {}],
+            ["October 2026", 4, 31, 10, 0, {
+              3: ["3aeb7b9e-4a47-48a0-8dac-f3ba7279040e", 1],
+              6: ["348bdd4b-43bc-4c4a-9c74-c283e513cd8b", 1],
+              11: ["de71f0de-74f3-457c-a414-7d628b7e81e5", 1],
+              18: ["9c82da8d-6bea-425b-9540-50f9abcc8ee8", 2],
+              22: ["ba8dcc8b-f074-4899-9c08-4a318469bf11", 5],
+            }],
+          ];
+          const host = document.getElementById("months");
+          for (const [title, lead, days, count, today, photos] of months) {
+            let cells = ["S", "M", "T", "W", "T", "F", "S"].map((d) => `<i>${d}</i>`).join("");
+            cells += "<span></span>".repeat(lead);
+            for (let n = 1; n <= days; n++) {
+              const photo = photos[n];
+              const mark = n === today ? " today" : "";
+              cells += photo
+                ? `<span class="cell photo${mark}"><img src="assets/photos/${photo[0]}.jpg" alt="" /><b>${n}</b>${photo[1] > 1 ? `<em>${photo[1]}</em>` : ""}</span>`
+                : `<span class="cell${mark}">${n}</span>`;
+            }
+            host.insertAdjacentHTML("beforeend", `<section class="month"><header><h3>${title}</h3><span>${count} ${count === 1 ? "photo" : "photos"}</span></header><div class="grid">${cells}</div></section>`);
+          }
+        })();
+
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        const rise = { opacity: 0, y: 24 };
+        const show = { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" };
+        const swap = (out, inn, at) => {
+          tl.to(out, { opacity: 0, y: -12, duration: 0.3, ease: "power2.in" }, at - 0.3);
+          tl.fromTo(inn, rise, { ...show, duration: 0.5 }, at);
+        };
+        const touch = (x, y, at) => {
+          tl.set("#touch", { left: x, top: y }, at);
+          tl.fromTo("#touch", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.12, ease: "power2.out" }, at);
+          tl.to("#touch", { opacity: 0, scale: 1.4, duration: 0.3, ease: "power2.in" }, at + 0.16);
+        };
+        const dock = (targets, at, gap = 0.07) =>
+          tl.fromTo(targets, { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.7, ease: "back.out(1.4)", stagger: gap }, at);
+        const tab = (name, x, at) => {
+          touch(x, 820, at);
+          tl.to("#app .tabbar .sel", { x: x - 51, duration: 0.45, ease: "power3.inOut" }, at + 0.05);
+          tl.set("#app .tabbar .tab", { className: "tab" }, at + 0.15);
+          tl.set(`#tab-${name}`, { className: "tab on" }, at + 0.15);
+        };
+
+        tl.fromTo("#app .device", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0);
+        tl.fromTo("#a-hook > *", rise, { ...show, stagger: 0.15 }, 0.15);
+        const screen = document.querySelector("#app .screen").getBoundingClientRect();
+        const icon = document.querySelector("#home .vesper .icon").getBoundingClientRect();
+        const ix = (icon.left + icon.width / 2 - screen.left) / 1.08;
+        const iy = (icon.top + icon.height / 2 - screen.top) / 1.08;
+        tl.fromTo("#home .app", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.6)", stagger: { each: 0.03, from: 5 } }, 0.5);
+        // iOS opens an app out of its icon: the window starts as the icon and grows to the screen,
+        // the icon art swelling and fading as the splash comes through
+        tl.to("#home .vesper .icon", { scale: 0.88, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 1 }, 2.0);
+        tl.set("#launch", { opacity: 1, backgroundColor: "#b4a5dc" }, 2.24);
+        tl.set("#launch .from", { left: ix - 32, top: iy - 32 }, 2.24);
+        tl.fromTo("#launch", { clipPath: `inset(${iy - 32}px ${402 - ix - 32}px ${874 - iy - 32}px ${ix - 32}px round 15px)` }, { clipPath: "inset(0px 0px 0px 0px round 62px)", duration: 0.62, ease: "expo.inOut" }, 2.24);
+        tl.to("#launch .from", { x: 201 - ix, y: 437 - iy, scale: 3.2, duration: 0.62, ease: "expo.inOut" }, 2.24);
+        tl.to("#launch .from", { opacity: 0, duration: 0.24, ease: "power1.in" }, 2.42);
+        tl.to("#launch", { backgroundColor: "#faf7eb", duration: 0.32, ease: "power1.inOut" }, 2.62);
+        tl.to("#home", { scale: 1.18, opacity: 0, transformOrigin: `${ix}px ${iy}px`, duration: 0.62, ease: "expo.inOut" }, 2.24);
+        tl.to("#app .status", { color: "#1a1a1a", duration: 0.3 }, 2.55);
+        tl.fromTo("#launch .word", { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 2.75);
+        tl.fromTo("#launch .bar", { scaleX: 0.3, opacity: 0.4 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: "sine.inOut" }, 2.75);
+
+        swap("#a-hook", "#a-memos", 3.1);
+        tl.set(["#memos", "#tabbar"], { opacity: 1 }, 3.4);
+        tl.to("#launch", { opacity: 0, duration: 0.35, ease: "power2.out" }, 3.4);
+        dock(["#memos .nav", "#memos .chip", "#feed .pinned", "#deck", "#rest .card", "#memos .fab"], 3.45, 0.05);
+        tl.fromTo("#tabbar", { y: 80 }, { y: 0, duration: 0.6, ease: "power3.out" }, 3.5);
+        tl.set("#pin-b", { position: "absolute", top: 0, left: 0, right: 0, opacity: 0 }, 0);
+        touch(70, 186, 4.9);
+        tl.to("#feed .chev", { rotation: 90, duration: 0.3, ease: "power2.out" }, 5.0);
+        tl.to("#deck .peek", { opacity: 0, duration: 0.15 }, 5.0);
+        tl.set("#pin-b", { position: "relative", top: "auto" }, 5.0);
+        tl.fromTo("#pin-b", { opacity: 0, y: -60 }, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.3)" }, 5.0);
+        tl.to("#feed", { y: -330, duration: 1.8, ease: "power2.inOut" }, 6.1);
+
+        swap("#a-memos", "#a-moment", 8.15);
+        tab("moment", 146, 8.0);
+        tl.to("#memos", { opacity: 0, x: -30, duration: 0.3, ease: "power2.in" }, 8.1);
+        tl.fromTo("#moment", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 8.2);
+        dock(["#moment .nav", "#stream > *"], 8.2, 0.06);
+        tl.fromTo("#moment .sharp", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.out", stagger: 0.3 }, 8.6);
+        tl.to("#stream", { y: -820, duration: 3.2, ease: "power2.inOut" }, 9.5);
+
+        swap("#a-moment", "#a-atlas", 12.75);
+        tab("atlas", 232, 12.6);
+        tl.to("#moment", { opacity: 0, x: -30, duration: 0.3, ease: "power2.in" }, 12.7);
+        tl.fromTo("#atlas", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 12.8);
+        tl.fromTo("#pins .pin", { opacity: 0, y: -36, scale: 0.6 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "back.out(1.8)", stagger: 0.04 }, 13.0);
+        tl.fromTo("#map", { scale: 1 }, { scale: 1.12, duration: 2.4, ease: "sine.inOut" }, 13.2);
+
+        touch(275, 84, 15.3);
+        tl.to("#atlas > .nav", { opacity: 0, duration: 0.2 }, 15.4);
+        tl.fromTo("#cal", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 15.45);
+        dock(["#cal .nav", "#months .month header", "#months .grid"], 15.5, 0.06);
+        tl.fromTo("#months .today", { scale: 1 }, { scale: 1.18, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 1 }, 16.2);
+        tl.fromTo("#months .cell.photo img", { opacity: 0 }, { opacity: 1, duration: 0.4, stagger: 0.08 }, 16.4);
+        tl.to("#months", { y: -330, duration: 1.5, ease: "power2.inOut" }, 16.9);
+
+        swap("#a-atlas", "#a-signin", 18.75);
+        tab("settings", 318, 18.6);
+        tl.to("#atlas", { opacity: 0, duration: 0.3 }, 18.7);
+        tl.fromTo("#settings", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 18.8);
+        dock(["#settings .nav", "#settings .form > *"], 18.8, 0.04);
+        touch(150, 146, 19.6);
+        tl.to("#acc-out", { opacity: 0, duration: 0.2 }, 19.75);
+        tl.to("#account", { height: 128, duration: 0.45, ease: "power3.inOut" }, 19.75);
+        tl.to("#acc-wait", { opacity: 1, duration: 0.2 }, 19.8);
+        tl.fromTo("#acc-wait .bone, #acc-wait .avatar", { opacity: 1 }, { opacity: 0.45, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 2 }, 19.9);
+        tl.to("#acc-wait", { opacity: 0, duration: 0.25 }, 20.8);
+        tl.fromTo("#acc-in", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 20.85);
+
+        tl.to("#app .device", { y: -10, rotation: 0.5, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: 5 }, 4.0);
+        tl.to(["#app .device", "#app .col"], { opacity: 0, duration: 0.4 }, 23.1);
+        window.__timelines["app"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

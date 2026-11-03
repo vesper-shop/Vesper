@@ -1,0 +1,57 @@
+[
+ {
+  "id": "20260805T113317Z-971543a1",
+  "content": "窝的主页: https://you-find.me\n窝的碎碎念: https://memos.you-find.me\n窝的相册: https://moment.you-find.me",
+  "tags": [],
+  "createdAt": "2026-08-05T11:33:17.191Z",
+  "visibility": "public",
+  "pinned": true,
+  "favorite": false
+ },
+ {
+  "id": "20260512T004941Z-8e418044",
+  "content": "你好👋 这是我的第一个memos 纪念一下\n\n#日常",
+  "tags": [
+   "日常"
+  ],
+  "createdAt": "2026-05-12T00:49:41.735Z",
+  "visibility": "public",
+  "pinned": true,
+  "favorite": false
+ },
+ {
+  "id": "20261028T215840Z-1deb26cf",
+  "content": "测试一下 内容的管理和分发\n——来自my-memos\n\n#开发",
+  "tags": [
+   "开发"
+  ],
+  "createdAt": "2026-10-28T21:58:40.813Z",
+  "visibility": "public",
+  "pinned": false,
+  "favorite": false
+ },
+ {
+  "id": "20261027T100913Z-1203e479",
+  "content": "感觉活人感真的成为这个时代互联网上最稀缺的东西了\n仿佛昙花一现般转瞬即逝\n在如今ai回复 机器人代理的时代 更是难能可贵\n\n因为没有人能保持高精力时刻向外输出积极向上的东西\n需要去注意生活中美好的细节 需要有一定的分享欲 还需要要在现实中一定的孤独\n一旦心情郁闷想要封闭自己 一旦被日程压得喘不过气 一旦因为生病需要休息\n这难寻的活人感就从互联网上消失了\n\n这就是为什么一些年轻人大学生会受欢迎\n因为他们刚入社会的活力与活人感 总能从他们身上 看到自己当年的影子\n\n#思考 #社交",
+  "tags": [
+   "思考",
+   "社交"
+  ],
+  "createdAt": "2026-10-27T10:09:13.315Z",
+  "visibility": "public",
+  "pinned": false,
+  "favorite": false
+ },
+ {
+  "id": "20260629T162453Z-f73ab169",
+  "content": "人离家越远 就离自己越近 在举目无亲的地方才能真正地做自己 因为家是由人构成的\n\n明道若昧 进道若退\n\n#思考 #成长",
+  "tags": [
+   "思考",
+   "成长"
+  ],
+  "createdAt": "2026-06-29T16:24:53.737Z",
+  "visibility": "public",
+  "pinned": false,
+  "favorite": false
+ }
+]

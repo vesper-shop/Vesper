@@ -1,17 +1,23 @@
 # Footage
 
-The video shows the app itself, recorded from the iOS Simulator. The recordings are not committed
-(`.gitignore`), so re-record them as below before previewing or rendering.
+The film redraws the app in the DOM (`compositions/app.html`). These Simulator takes are the
+reference the redraw is checked against; they are not committed (`.gitignore`) and the film
+does not play them.
 
 | File | What | How |
 | --- | --- | --- |
-| _filled in once `SPEC.md` names its shots_ | | `scripts/record.sh <name>` |
+| `memos-feed.mp4` | 3 · Memos, Display → Public: scroll the feed, open the pinned deck | `scripts/record.sh memos-feed` |
+| `moment-timeline.mp4` | 4 · Moment timeline: scroll, open a photo, back | `scripts/record.sh moment-timeline` |
+| `atlas.mp4` | 5 · Atlas calendar, then the map over Britain (never zoomed on home) | `scripts/record.sh atlas` |
+| `signin.mp4` | 6 · Settings: the you-find.me account card | `scripts/record.sh signin` |
+
+Each shot uses 4–5.4 s of its take (`SPEC.md`); record about 8 s and note the chosen start here.
 
 ## Before recording
 
-1. **Demo content, not personal.** Memos and photos on the account are real and some are
-   private. Write a demo set first: private memos tagged `#promo`, photos tagged `promo`. Filter
-   the tag bar to `#promo` while recording, then archive or delete the set afterwards.
+1. **Public only.** Memos and photos on the account are real and some are private. In Memos,
+   switch Display (top right) to **Public** before recording, so only public memos are listed.
+   Keep Atlas off the home area.
 2. **Release build.** It starts faster and drops debug overlays:
    `xcodebuild -project ../../Vesper.xcodeproj -scheme Vesper -configuration Release -destination "platform=iOS Simulator,name=iPhone 18 Pro" -derivedDataPath build build`,
    then `xcrun simctl install "iPhone 18 Pro" build/Build/Products/Release-iphonesimulator/Vesper.app`.
