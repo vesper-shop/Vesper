@@ -16,6 +16,7 @@ public actor Identity {
     private let vaultAccount: String
     private var access: (token: String, expiry: Date)?
     private var refreshing: Task<String, any Error>?
+    private var epoch = 0
 
     init(vaultAccount: String = "you-find-me") {
         self.vaultAccount = vaultAccount
@@ -63,8 +64,20 @@ public actor Identity {
         return account
     }
 
-    public func account() throws -> Account? {
-        try session()?.account
+    public func account() async throws -> Account? {
+        guard try session() != nil else { return nil }
+        let epoch = epoch
+        let token = try await self.token()
+        guard let session = try session() else { return nil }
+        let profile: Account
+        do {
+            profile = try await self.profile(token)
+        } catch {
+            return session.account
+        }
+        guard epoch == self.epoch, let session = try self.session() else { return nil }
+        try store(Session(refreshToken: session.refreshToken, account: profile))
+        return profile
     }
 
     public func token() async throws -> String {
@@ -76,6 +89,7 @@ public actor Identity {
         if let refreshing {
             return try await refreshing.value
         }
+        let epoch = epoch
         let task = Task {
             guard let session = try session() else { throw IdentityError.signedOut }
             let response: TokenResponse
@@ -83,6 +97,10 @@ public actor Identity {
                 response = try await exchange([("grant_type", "refresh_token"), ("refresh_token", session.refreshToken)])
             } catch IdentityError.expired {
                 try Vault.delete(vaultAccount)
+                throw IdentityError.signedOut
+            }
+            guard epoch == self.epoch else {
+                access = nil
                 throw IdentityError.signedOut
             }
             if let rotated = response.refreshToken {
@@ -100,15 +118,16 @@ public actor Identity {
     }
 
     public func signOut() async throws {
-        if let session = try session() {
-            _ = try await post("revoke", [
-                ("token", session.refreshToken),
-                ("token_type_hint", "refresh_token"),
-                ("client_id", Self.client),
-            ], operation: "sign-out")
-        }
+        let current = try session()
+        epoch += 1
         try Vault.delete(vaultAccount)
         access = nil
+        guard let current else { return }
+        _ = try await post("revoke", [
+            ("token", current.refreshToken),
+            ("token_type_hint", "refresh_token"),
+            ("client_id", Self.client),
+        ], operation: "sign-out")
     }
 
     private func exchange(_ fields: [(String, String)]) async throws -> TokenResponse {

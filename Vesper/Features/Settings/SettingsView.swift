@@ -144,11 +144,12 @@ private struct AccountSection: View {
         defer { working = false }
         do {
             try await Identity.shared.signOut()
-            account = nil
-            ConsumerAPI.allCases.forEach(model.invalidate)
+            error = nil
         } catch {
             self.error = error.localizedDescription
         }
+        account = nil
+        model.signedOut()
     }
 }
 

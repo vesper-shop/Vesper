@@ -14,4 +14,10 @@ final class AppModel {
     func invalidate(_ api: ConsumerAPI) {
         revisions[api, default: 0] += 1
     }
+
+    func signedOut() {
+        memos.signedOut()
+        moment.signedOut()
+        atlas.signedOut()
+    }
 }

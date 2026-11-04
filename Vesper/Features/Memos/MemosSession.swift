@@ -38,9 +38,28 @@ final class MemosSession {
             cursor = page.nextCursor
             problem = nil
         } catch {
-            guard current == generation, let problem = LoadProblem(error) else { return }
+            guard current == generation, let problem = failed(error) else { return }
             self.problem = problem
         }
+    }
+
+    func signedOut() {
+        generation += 1
+        clear()
+        problem = .signedOut
+        loading = false
+    }
+
+    private func clear() {
+        items = []
+        tags = []
+        cursor = nil
+    }
+
+    private func failed(_ error: any Error) -> LoadProblem? {
+        guard let problem = LoadProblem(error) else { return nil }
+        if problem == .signedOut { clear() }
+        return problem
     }
 
     func paginate() async {
@@ -56,7 +75,7 @@ final class MemosSession {
             items += next
             self.cursor = page.nextCursor
         } catch {
-            if case .failed? = LoadProblem(error) { notice = error.localizedDescription }
+            if case .failed? = failed(error) { notice = error.localizedDescription }
         }
     }
 
@@ -64,7 +83,7 @@ final class MemosSession {
         do {
             tags = try await Memos.tags()
         } catch {
-            if case .failed? = LoadProblem(error) { notice = error.localizedDescription }
+            if case .failed? = failed(error) { notice = error.localizedDescription }
         }
     }
 

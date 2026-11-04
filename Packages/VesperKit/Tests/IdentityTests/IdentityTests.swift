@@ -72,4 +72,20 @@ struct IdentityTests {
         }
         #expect(try Vault.read(account) == nil)
     }
+
+    @Test("Sign-out drops the local session when revocation is refused") func signOut() async throws {
+        respond(401, #"{"error":"invalid_client"}"#)
+        let identity = Identity(vaultAccount: account)
+        await #expect {
+            try await identity.signOut()
+        } throws: { error in
+            if case IdentityError.status = error { true } else { false }
+        }
+        #expect(try Vault.read(account) == nil)
+        await #expect {
+            try await identity.token()
+        } throws: { error in
+            if case IdentityError.signedOut = error { true } else { false }
+        }
+    }
 }

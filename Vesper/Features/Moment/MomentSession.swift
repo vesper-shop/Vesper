@@ -53,9 +53,28 @@ final class MomentSession {
             cursor = page.nextCursor
             problem = nil
         } catch {
-            guard current == generation, let problem = LoadProblem(error) else { return }
+            guard current == generation, let problem = failed(error) else { return }
             self.problem = problem
         }
+    }
+
+    func signedOut() {
+        generation += 1
+        clear()
+        problem = .signedOut
+        loading = false
+    }
+
+    private func clear() {
+        photos = []
+        tags = []
+        cursor = nil
+    }
+
+    private func failed(_ error: any Error) -> LoadProblem? {
+        guard let problem = LoadProblem(error) else { return nil }
+        if problem == .signedOut { clear() }
+        return problem
     }
 
     func paginate() async {
@@ -70,7 +89,7 @@ final class MomentSession {
             photos += page.photos.filter { !known.contains($0.id) }
             self.cursor = page.nextCursor
         } catch {
-            if case .failed? = LoadProblem(error) { notice = error.localizedDescription }
+            if case .failed? = failed(error) { notice = error.localizedDescription }
         }
     }
 
@@ -78,7 +97,7 @@ final class MomentSession {
         do {
             tags = try await Moment.tags()
         } catch {
-            if case .failed? = LoadProblem(error) { notice = error.localizedDescription }
+            if case .failed? = failed(error) { notice = error.localizedDescription }
         }
     }
 

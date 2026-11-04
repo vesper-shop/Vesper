@@ -46,6 +46,14 @@ final class AtlasSession {
         } catch {
             guard current == generation, let problem = LoadProblem(error) else { return }
             self.problem = problem
+            if problem == .signedOut { photos = [] }
         }
+    }
+
+    func signedOut() {
+        generation += 1
+        photos = []
+        problem = .signedOut
+        loading = false
     }
 }
