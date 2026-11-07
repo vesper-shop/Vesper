@@ -77,6 +77,12 @@ struct MemoEditor: View {
                         Button(role: .confirm) { Task { await save() } }
                             .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || saving)
                     }
+                    #if os(iOS)
+                    ToolbarSpacer(.flexible, placement: .keyboard)
+                    ToolbarItem(placement: .keyboard) {
+                        Button("Dismiss Keyboard", systemImage: "keyboard.chevron.compact.down") { focused = false }
+                    }
+                    #endif
                 }
                 .alert("Couldn't Save", isPresented: .constant(error != nil), presenting: error) { _ in
                     Button("OK") { error = nil }

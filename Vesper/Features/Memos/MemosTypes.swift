@@ -1,5 +1,4 @@
 import Consumers
-import Social
 import VesperMarkdown
 
 /// A memo with its body compiled once, so rendering never re-parses Markdown.
@@ -26,7 +25,6 @@ enum MemoAction {
     case edit
     case delete
     case filter(tag: String)
-    case post(SocialProvider)
 }
 
 struct MemosQuery: Hashable {

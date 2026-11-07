@@ -1,11 +1,9 @@
 import Consumers
-import Social
 import SwiftUI
 import VesperUI
 
 struct MemosView: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.openURL) private var openURL
     @State private var editing: Memo?
     @State private var composing = false
     @State private var deleting: Memo?
@@ -175,6 +173,7 @@ struct MemosView: View {
                 .frame(maxWidth: .infinity)
                 .animation(Theme.Motion.gentle, value: sections.timeline.map(\.id))
             }
+            .scrollDismissesKeyboard(.immediately)
             .backToTop()
             .tabSwipe()
         }
@@ -197,14 +196,6 @@ struct MemosView: View {
             case .edit: editing = item.memo
             case .delete: deleting = item.memo
             case .filter(let tag): withAnimation(Theme.Motion.gentle) { session.filters.tag = tag }
-            case .post(let provider):
-                do {
-                    openURL(try Social.compose(item.memo, on: provider)) { opened in
-                        if !opened { session.notice = "\(provider.title) could not be opened." }
-                    }
-                } catch {
-                    session.notice = error.localizedDescription
-                }
             }
         }
     }

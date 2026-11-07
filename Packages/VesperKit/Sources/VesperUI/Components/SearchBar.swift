@@ -1,11 +1,18 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#else
+import AppKit
+#endif
 
 /// A Liquid Glass search field whose presence the caller owns: it focuses when shown and
-/// `close` is the only way it goes away.
+/// `close` is the only way it goes away. `text` only receives committed input, never an IME
+/// composition in progress.
 public struct SearchBar: View {
     @Binding var text: String
     let prompt: String
     let close: () -> Void
+    @State private var draft = ""
     @FocusState private var focused: Bool
 
     public init(text: Binding<String>, prompt: String, close: @escaping () -> Void) {
@@ -20,12 +27,26 @@ public struct SearchBar: View {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(Theme.mutedForeground)
-                    TextField(prompt, text: $text)
+                    TextField(prompt, text: $draft)
                         .focused($focused)
                         .submitLabel(.search)
                         .autocorrectionDisabled()
-                    if !text.isEmpty {
-                        Button { text = "" } label: {
+                        .onSubmit { text = draft }
+                        .onReceive(NotificationCenter.default.publisher(for: SearchBar.edited)) { note in
+                            guard focused else { return }
+                            #if os(iOS)
+                            guard let field = note.object as? UITextField, field.markedTextRange == nil else { return }
+                            text = field.text ?? ""
+                            #else
+                            guard let editor = (note.object as? NSTextField)?.currentEditor() as? NSTextView, !editor.hasMarkedText() else { return }
+                            text = editor.string
+                            #endif
+                        }
+                    if !draft.isEmpty {
+                        Button {
+                            draft = ""
+                            text = ""
+                        } label: {
                             Image(systemName: "xmark.circle.fill").foregroundStyle(Theme.mutedForeground)
                         }
                         .buttonStyle(.plain)
@@ -48,6 +69,15 @@ public struct SearchBar: View {
             .padding(.horizontal)
             .padding(.vertical, 6)
         }
-        .onAppear { focused = true }
+        .onAppear {
+            draft = text
+            focused = true
+        }
     }
+
+    #if os(iOS)
+    private static let edited = UITextField.textDidChangeNotification
+    #else
+    private static let edited = NSControl.textDidChangeNotification
+    #endif
 }

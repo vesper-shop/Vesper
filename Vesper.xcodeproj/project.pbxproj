@@ -10,7 +10,6 @@
 		A10000000000000000000021 /* Consumers in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000011 /* Consumers */; };
 		A10000000000000000000022 /* VesperMarkdown in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000012 /* VesperMarkdown */; };
 		A10000000000000000000023 /* VesperUI in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000013 /* VesperUI */; };
-		A10000000000000000000025 /* Social in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000015 /* Social */; };
 		A10000000000000000000026 /* Identity in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000016 /* Identity */; };
 /* End PBXBuildFile section */
 
@@ -47,7 +46,6 @@
 				A10000000000000000000021 /* Consumers in Frameworks */,
 				A10000000000000000000022 /* VesperMarkdown in Frameworks */,
 				A10000000000000000000023 /* VesperUI in Frameworks */,
-				A10000000000000000000025 /* Social in Frameworks */,
 				A10000000000000000000026 /* Identity in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -94,7 +92,6 @@
 				A10000000000000000000011 /* Consumers */,
 				A10000000000000000000012 /* VesperMarkdown */,
 				A10000000000000000000013 /* VesperUI */,
-				A10000000000000000000015 /* Social */,
 				A10000000000000000000016 /* Identity */,
 			);
 			productName = Vesper;
@@ -310,10 +307,6 @@
 		A10000000000000000000013 /* VesperUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = VesperUI;
-		};
-		A10000000000000000000015 /* Social */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Social;
 		};
 		A10000000000000000000016 /* Identity */ = {
 			isa = XCSwiftPackageProductDependency;

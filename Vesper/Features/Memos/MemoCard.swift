@@ -1,5 +1,4 @@
 import Consumers
-import Social
 import SwiftUI
 import VesperUI
 
@@ -76,10 +75,6 @@ struct MemoCard: View {
         Button("Edit", systemImage: "pencil") { perform(.edit) }
         Button(memo.archived ? "Restore" : "Archive", systemImage: memo.archived ? "tray.and.arrow.up" : "archivebox") { perform(.toggle(.archived)) }
         Divider()
-        ForEach(SocialProvider.allCases) { provider in
-            Button("Post to \(provider.title)", systemImage: "paperplane") { perform(.post(provider)) }
-                .disabled(memo.visibility != .public)
-        }
         ShareLink(item: memo.content)
         Divider()
         Button("Delete", systemImage: "trash", role: .destructive) { perform(.delete) }

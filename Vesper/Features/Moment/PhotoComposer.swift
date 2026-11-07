@@ -25,6 +25,7 @@ struct PhotoComposer: View {
     @State private var posted = false
     @State private var error: String?
     @State private var discarding = false
+    @FocusState private var focused: Bool
     private let log = Logger(subsystem: "me.youfind.vesper", category: "moment")
 
     private var edited: Bool {
@@ -36,8 +37,10 @@ struct PhotoComposer: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     TextField("Title", text: $title)
+                        .focused($focused)
                         .font(Theme.Font.display)
                     TextField("Say something about this moment…", text: $description, axis: .vertical)
+                        .focused($focused)
                         .font(Theme.Font.body)
                         .lineLimit(4...12)
                         .padding(.top, 10)
@@ -118,6 +121,7 @@ struct PhotoComposer: View {
                             Image(systemName: "number").frame(width: 22)
                             Text("Tags").foregroundStyle(Theme.foreground)
                             TextField("travel scotland", text: $tags)
+                                .focused($focused)
                                 .multilineTextAlignment(.trailing)
                                 .autocorrectionDisabled()
                                 #if os(iOS)
@@ -162,6 +166,12 @@ struct PhotoComposer: View {
                             .disabled(photo == nil || title.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                 }
+                #if os(iOS)
+                ToolbarSpacer(.flexible, placement: .keyboard)
+                ToolbarItem(placement: .keyboard) {
+                    Button("Dismiss Keyboard", systemImage: "keyboard.chevron.compact.down") { focused = false }
+                }
+                #endif
             }
             .photosPicker(isPresented: $picking, selection: $item, matching: .images)
             .onChange(of: item) {
