@@ -10,18 +10,22 @@ public struct TagChip: Hashable, Sendable {
     }
 }
 
+/// Equal by id, since the image loader cannot be compared.
 public struct MapPin: Identifiable, Hashable, Sendable {
     public let id: String
     public let latitude: Double
     public let longitude: Double
-    public let image: URL
+    public let image: @Sendable () async throws -> Data
 
-    public init(id: String, latitude: Double, longitude: Double, image: URL) {
+    public init(id: String, latitude: Double, longitude: Double, image: @escaping @Sendable () async throws -> Data) {
         self.id = id
         self.latitude = latitude
         self.longitude = longitude
         self.image = image
     }
+
+    public static func == (left: MapPin, right: MapPin) -> Bool { left.id == right.id }
+    public func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 
 /// Where a map opens: a center and a web-map zoom level (0 is the whole world).
@@ -47,7 +51,6 @@ public struct MapCoordinate: Hashable, Sendable {
     }
 }
 
-/// A transient message; `action` offers a way back, such as Undo.
 public struct ToastMessage: Identifiable, Equatable {
     public let id = UUID()
     public let text: String

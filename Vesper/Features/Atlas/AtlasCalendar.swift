@@ -44,7 +44,7 @@ struct AtlasCalendar: View {
                                         Button { open(.photos(photos, start: photos[0])) } label: {
                                             Theme.muted
                                                 .aspectRatio(1, contentMode: .fit)
-                                                .overlay { PhotoImage(photo: photos[0], url: photos[0].thumbnailURL, mode: .fill) }
+                                                .overlay { PhotoImage(photo: photos[0], thumbnail: true, mode: .fill) }
                                                 .clipShape(.rect(cornerRadius: Theme.Radius.md))
                                                 .overlay(alignment: .topLeading) {
                                                     Text("\(number)")

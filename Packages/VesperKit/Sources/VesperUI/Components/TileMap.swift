@@ -158,7 +158,7 @@ final class PinView: MLNAnnotationView {
         image.image = nil
         loading = Task { [image] in
             do {
-                let (data, _) = try await URLSession.shared.data(from: pin.image)
+                let data = try await pin.image()
                 try Task.checkCancellation()
                 image.image = UIImage(data: data)
             } catch is CancellationError {

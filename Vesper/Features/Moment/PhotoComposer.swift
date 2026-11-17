@@ -6,8 +6,6 @@ import PhotosUI
 import SwiftUI
 import VesperUI
 
-/// Laid out as a social post is written: words first, one photo in its square, then rows for
-/// where and when it was taken and its tags.
 struct PhotoComposer: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss

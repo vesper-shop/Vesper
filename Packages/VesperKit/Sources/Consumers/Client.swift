@@ -2,15 +2,24 @@ import Foundation
 import Identity
 
 struct Client {
-    /// The consumer APIs emit ISO 8601 timestamps with milliseconds (JavaScript `toISOString`).
+    /// Vesper emits ISO 8601 timestamps with milliseconds (JavaScript `toISOString`).
     static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
-        let format = Date.ISO8601FormatStyle(includingFractionalSeconds: true)
         decoder.dateDecodingStrategy = .custom { decoder in
-            try format.parse(decoder.singleValueContainer().decode(String.self))
+            let text = try decoder.singleValueContainer().decode(String.self)
+            guard let date = date(text) else {
+                throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Not an ISO 8601 date: \(text)"))
+            }
+            return date
         }
         return decoder
     }()
+
+    /// Vesper writes ISO 8601 with an offset, with or without fractional seconds.
+    static func date(_ text: String) -> Date? {
+        let formats = [Date.ISO8601FormatStyle(includingFractionalSeconds: true), Date.ISO8601FormatStyle()]
+        return formats.lazy.compactMap { try? $0.parse(text) }.first
+    }
 
     let api: ConsumerAPI
 
@@ -48,9 +57,11 @@ struct Client {
             request.setValue("multipart/form-data; boundary=\(form.boundary)", forHTTPHeaderField: "Content-Type")
             request.httpBody = form.body
             request.timeoutInterval = 300
-        case nil where method != "GET":
-            // SvelteKit rejects a bodiless write with no content type as a cross-site form (403).
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        case .raw(let data, let type, let headers):
+            request.setValue(type, forHTTPHeaderField: "Content-Type")
+            headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+            request.httpBody = data
+            request.timeoutInterval = 300
         case nil:
             break
         }

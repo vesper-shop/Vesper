@@ -13,7 +13,7 @@ let package = Package(
     ],
     dependencies: [
         // Vector-tile maps; the distribution ships an iOS-only binary.
-        .package(url: "https://github.com/maplibre/maplibre-gl-native-distribution", exact: "6.31.0"),
+        .package(url: "https://github.com/maplibre/maplibre-gl-native-distribution", exact: "7.0.0"),
     ],
     targets: [
         .target(name: "Vault"),

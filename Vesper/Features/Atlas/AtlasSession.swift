@@ -49,11 +49,4 @@ final class AtlasSession {
             if problem == .signedOut { photos = [] }
         }
     }
-
-    func signedOut() {
-        generation += 1
-        photos = []
-        problem = .signedOut
-        loading = false
-    }
 }

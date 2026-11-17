@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// A glass "Top" capsule that rises once a scroll view is more than one and a half screens down
-/// and scrolls it back to the top. Apply it to the scroll view itself.
 public struct BackToTop: ViewModifier {
     @State private var position = ScrollPosition(edge: .top)
     @State private var away = false

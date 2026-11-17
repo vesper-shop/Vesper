@@ -24,7 +24,7 @@ struct MomentTimeline: View {
                             }
                             .buttonStyle(.plain)
                             .contextMenu {
-                                ShareLink(item: photo.imageURL)
+                                ShareLink(item: photo.shareURL)
                                 if let geo = photo.geo {
                                     Link(destination: URL(string: "https://maps.apple.com/?ll=\(geo.lat),\(geo.lng)")!) {
                                         Label("Open in Maps", systemImage: "map")
@@ -138,7 +138,7 @@ private struct PhotoBubble: View {
                 Theme.muted
                     // Very tall photos are cropped to 4:5 so one photo never fills the screen.
                     .aspectRatio(max(photo.ratio, 0.8), contentMode: .fit)
-                    .overlay { PhotoImage(photo: photo, url: photo.thumbnailURL, mode: .fill) }
+                    .overlay { PhotoImage(photo: photo, thumbnail: true, mode: .fill) }
                     .clipped()
                     .matchedTransitionSource(id: photo.id, in: zoom)
 

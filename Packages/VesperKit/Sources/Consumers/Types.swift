@@ -16,12 +16,8 @@ public enum ConsumerAPI: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    public var baseURL: URL {
-        switch self {
-        case .memos: URL(string: "https://memos.you-find.me")!
-        case .moment: URL(string: "https://moment.you-find.me")!
-        }
-    }
+    /// Both read Vesper; memos are entries without photos.
+    public var baseURL: URL { URL(string: "https://noted-this.date")! }
 }
 
 public enum ConsumerError: LocalizedError, Sendable {
@@ -50,6 +46,7 @@ struct TagList: Decodable {
 enum RequestBody {
     case json(any Encodable)
     case form(Multipart)
+    case raw(Data, type: String, headers: [String: String])
 }
 
 struct Multipart {
@@ -73,7 +70,7 @@ struct Multipart {
 
 // MARK: - Memos
 
-public struct Memo: Decodable, Identifiable, Hashable, Sendable {
+public struct Memo: Identifiable, Hashable, Sendable {
     public enum Visibility: String, Codable, CaseIterable, Sendable {
         case `public`
         case `private`
@@ -90,20 +87,70 @@ public struct Memo: Decodable, Identifiable, Hashable, Sendable {
     public let archived: Bool
 }
 
-public struct MemoPage: Decodable, Sendable {
+public struct MemoPage: Sendable {
     public let memos: [Memo]
     public let nextCursor: String?
 }
 
-struct MemoEnvelope: Decodable {
-    let memo: Memo
+struct EntryDocument: Decodable {
+    struct Meta: Decodable {
+        let id: String
+        let occurred: Date
+        let visibility: Memo.Visibility
+        let pinned: String?
+        let favorite: String?
+        let archived: String?
+        let tags: [String]
+        let photos: [String]
+    }
+
+    let meta: Meta
+    let body: String
+    let photos: [EntryPhoto]?
+
+    var memo: Memo {
+        let line = meta.tags.map { "#\($0)" }.joined(separator: " ")
+        let trimmed = body.replacing(/\s+$/, with: "")
+        return Memo(
+            id: meta.id,
+            content: line.isEmpty ? trimmed : "\(trimmed)\n\n\(line)",
+            tags: meta.tags,
+            createdAt: meta.occurred,
+            updatedAt: meta.occurred,
+            visibility: meta.visibility,
+            pinned: meta.pinned != nil,
+            favorite: meta.favorite != nil,
+            archived: meta.archived != nil
+        )
+    }
 }
 
-struct MemoDraft: Encodable {
-    let content: String
-    let tags: [String] = []
-    let visibility: Memo.Visibility
-    let favorite = false
+struct EntryPhoto: Decodable {
+    let id: String
+    let width: Int
+    let height: Int
+    let takenAt: Double?
+    let geo: Photo.Geo?
+    let thumbHash: String
+}
+
+struct DocumentPage: Decodable {
+    let documents: [EntryDocument]
+    let next: String?
+}
+
+struct EntrySummaries: Decodable {
+    struct Summary: Decodable {
+        let id: String
+        let photos: [EntryPhoto]
+    }
+
+    let entries: [Summary]
+    let next: String?
+}
+
+struct Created: Decodable {
+    let id: String
 }
 
 /// Which slice of the feed a list reads; the API excludes archived memos unless asked.
@@ -138,7 +185,7 @@ public struct MemoFilters: Hashable, Sendable {
 }
 
 /// A PATCH body; nil fields are left unchanged.
-public struct MemoUpdate: Encodable, Sendable {
+public struct MemoUpdate: Sendable {
     public var content: String?
     public var visibility: Memo.Visibility?
     public var pinned: Bool?
@@ -160,7 +207,52 @@ public struct MemoUpdate: Encodable, Sendable {
     }
 }
 
+/// Nil fields are omitted, so PATCH leaves them unchanged.
+struct EntryPatch: Encodable {
+    let body: String?
+    let tags: [String]?
+    let visibility: Memo.Visibility?
+    let pinned: Bool?
+    let favorite: Bool?
+    let archived: Bool?
+}
+
 // MARK: - Moment
+
+struct PhotoEntry: Encodable {
+    let body: String
+    let tags: [String]
+    let visibility: Memo.Visibility
+    let occurredAt: Int?
+}
+
+/// Vesper's schema requires every field, null when unknown.
+struct PhotoMeta: Encodable {
+    let width: Int
+    let height: Int
+    let thumbHash: String
+    let takenAt: Int?
+    let geo: Photo.Geo?
+
+    func encode(to encoder: any Encoder) throws {
+        var meta = encoder.container(keyedBy: Key.self)
+        try meta.encode(width, forKey: .width)
+        try meta.encode(height, forKey: .height)
+        try meta.encode(thumbHash, forKey: .thumbHash)
+        try meta.encode(takenAt, forKey: .takenAt)
+        try meta.encode(geo, forKey: .geo)
+        try meta.encodeNil(forKey: .place)
+        var exif = meta.nestedContainer(keyedBy: Key.self, forKey: .exif)
+        for key in [Key.camera, .lens, .focalLength, .fNumber, .exposure, .iso, .film] {
+            try exif.encodeNil(forKey: key)
+        }
+    }
+
+    enum Key: String, CodingKey {
+        case width, height, thumbHash, takenAt, geo, place, exif
+        case camera, lens, focalLength, fNumber, exposure, iso, film
+    }
+}
 
 public struct Photo: Decodable, Identifiable, Hashable, Sendable {
     public struct Geo: Codable, Hashable, Sendable {
@@ -174,9 +266,7 @@ public struct Photo: Decodable, Identifiable, Hashable, Sendable {
     }
 
     public let id: String
-    public let url: String
-    public let thumbnailUrl: String
-    /// Hex-encoded; photos posted before hashes were kept have none.
+    public let entryId: String
     public let thumbHash: String?
     public let title: String
     public let width: Int
@@ -184,19 +274,81 @@ public struct Photo: Decodable, Identifiable, Hashable, Sendable {
     public let tags: [String]
     public let date: Date?
     public let description: String?
-    public let format: String?
     public let geo: Geo?
 
-    /// The API returns site-relative image paths; images need no key.
-    public var imageURL: URL { URL(string: url, relativeTo: ConsumerAPI.moment.baseURL)!.absoluteURL }
-    public var thumbnailURL: URL { URL(string: thumbnailUrl, relativeTo: ConsumerAPI.moment.baseURL)!.absoluteURL }
+    public var shareURL: URL { URL(string: "https://moment.you-find.me/photos/\(id)")! }
     public var ratio: Double { Double(width) / Double(height) }
     public var placeholder: CGImage? { thumbHash.map(ThumbHash.image) }
+
+    init(id: String, entryId: String, caption: String, tags: [String], width: Int, height: Int,
+         takenAt: Double?, occurredAt: Double, geo: Geo?, thumbHash: String) {
+        self.id = id
+        self.entryId = entryId
+        if let gap = caption.range(of: "\n\n") {
+            let rest = caption[gap.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines)
+            self.title = String(caption[..<gap.lowerBound])
+            self.description = rest.isEmpty ? nil : rest
+        } else {
+            self.title = caption
+            self.description = nil
+        }
+        self.tags = tags
+        self.width = width
+        self.height = height
+        let milliseconds = if let takenAt { takenAt } else { occurredAt }
+        self.date = Date(timeIntervalSince1970: milliseconds / 1000)
+        self.geo = geo
+        self.thumbHash = Photo.hex(base64URL: thumbHash)
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let item = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            id: item.decode(String.self, forKey: .id),
+            entryId: item.decode(String.self, forKey: .entryId),
+            caption: item.decode(String.self, forKey: .caption),
+            tags: item.decode([String].self, forKey: .tags),
+            width: item.decode(Int.self, forKey: .width),
+            height: item.decode(Int.self, forKey: .height),
+            takenAt: item.decodeIfPresent(Double.self, forKey: .takenAt),
+            occurredAt: item.decode(Double.self, forKey: .occurredAt),
+            geo: item.decodeIfPresent(Geo.self, forKey: .geo),
+            thumbHash: item.decode(String.self, forKey: .thumbHash)
+        )
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, entryId, caption, tags, width, height, takenAt, occurredAt, geo, thumbHash
+    }
+
+    static func hex(base64URL value: String) -> String? {
+        var base64 = value.replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+        base64 += String(repeating: "=", count: (4 - base64.count % 4) % 4)
+        return Data(base64Encoded: base64).map { $0.map { String(format: "%02x", $0) }.joined() }
+    }
+
+    static func base64URL(hex value: String) -> String {
+        var bytes = Data()
+        var rest = Substring(value)
+        while let byte = UInt8(rest.prefix(2), radix: 16), rest.count >= 2 {
+            bytes.append(byte)
+            rest = rest.dropFirst(2)
+        }
+        return bytes.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+    }
 }
 
 public struct PhotoPage: Decodable, Sendable {
     public let photos: [Photo]
     public let nextCursor: String?
+
+    enum CodingKeys: String, CodingKey {
+        case photos
+        case nextCursor = "next"
+    }
 }
 
 /// What a photo's own file says about it: EXIF capture time (local, with its offset when

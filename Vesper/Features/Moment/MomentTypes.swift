@@ -54,7 +54,6 @@ struct PlaceKey: Hashable {
     }
 }
 
-/// The one photo a post carries: its bytes with EXIF intact, a preview, and what the file says.
 struct ComposedPhoto {
     let source: Data
     let preview: CGImage

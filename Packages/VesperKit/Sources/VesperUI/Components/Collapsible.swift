@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Caps tall content at `maxHeight` with a fade and a Show more toggle, the touch equivalent of the
-/// desktop's scrollable `max-height` memo body.
 public struct Collapsible<Content: View>: View {
     let maxHeight: CGFloat
     @ViewBuilder let content: Content

@@ -1,7 +1,6 @@
 import Foundation
 import Security
 
-/// Generic credential storage in the Keychain. Features own their account names and validation.
 public enum Vault {
     private static let service = "me.youfind.vesper"
 

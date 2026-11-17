@@ -1,8 +1,6 @@
 import SwiftUI
 import VesperUI
 
-/// Switches to the neighbouring tab on a decisive horizontal swipe over a tab's root content.
-/// It runs alongside vertical scrolling and is not attached to pushed screens or the tag bar.
 struct TabSwipe: ViewModifier {
     @Environment(AppModel.self) private var model
 

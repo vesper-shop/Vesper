@@ -1,13 +1,13 @@
+import CryptoKit
 import Foundation
 
-/// The Moment API: `/api/photos` and `/api/tags` on moment.you-find.me.
 public enum Moment {
-    public static let pageSize = 60
+    public static let pageSize = 24
 
     public static func list(cursor: String? = nil, tag: String? = nil) async throws -> PhotoPage {
-        var query = [URLQueryItem(name: "limit", value: String(pageSize))]
-        if let cursor { query.append(.init(name: "cursor", value: cursor)) }
-        if let tag { query.append(.init(name: "tags", value: tag)) }
+        var query: [URLQueryItem] = []
+        if let cursor { query.append(.init(name: "before", value: cursor)) }
+        if let tag { query.append(.init(name: "tag", value: tag)) }
         return try await Client(.moment).json("photos", query: query, operation: "List photos")
     }
 
@@ -20,9 +20,16 @@ public enum Moment {
         try Media.metadata(source)
     }
 
-    /// Normalizes the photo as the desktop does, then posts both renditions to
-    /// `/api/photos/upload` with the Moment key. The Worker stores them in R2 through its binding
-    /// and removes them again if registration fails.
+    /// Vesper serves photos only to the owner.
+    public static func image(_ photo: Photo, thumbnail: Bool) async throws -> Data {
+        try await Client(.moment).data(
+            "photos/\(photo.id)",
+            method: "GET",
+            query: [.init(name: "size", value: thumbnail ? "thumb" : "original")],
+            operation: "Read photo"
+        )
+    }
+
     public static func upload(_ source: Data, input: PhotoInput) async throws -> Photo {
         let title = input.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let tags = input.tags.map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
@@ -35,19 +42,45 @@ public enum Moment {
         }
         let client = Client(.moment)
         let prepared = try Media.prepare(source)
-
+        let digest = SHA256.hash(data: prepared.original).map { String(format: "%02x", $0) }.joined()
+        _ = try await client.data(
+            "photos", method: "PUT",
+            body: .raw(prepared.original, type: "image/png", headers: ["x-content-sha256": digest]),
+            operation: "Upload photo"
+        )
+        let description = input.description.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        let takenAt = input.date.flatMap(Self.milliseconds)
+        let entry = PhotoEntry(
+            body: [title, description].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: "\n\n"),
+            tags: tags,
+            visibility: .public,
+            occurredAt: takenAt
+        )
+        let meta = PhotoMeta(
+            width: prepared.width,
+            height: prepared.height,
+            thumbHash: Photo.base64URL(hex: prepared.thumbHash),
+            takenAt: takenAt,
+            geo: input.geo
+        )
         var form = Multipart()
-        form.file("file", filename: "photo.png", type: "image/png", prepared.original)
-        form.file("thumbnail", filename: "thumbnail.jpg", type: "image/jpeg", prepared.thumbnail)
-        form.field("title", title)
-        if let description = input.description { form.field("description", description) }
-        if let date = input.date { form.field("date", date) }
-        if let geo = input.geo { form.field("geo", String(decoding: try JSONEncoder().encode(geo), as: UTF8.self)) }
-        form.field("tags", String(decoding: try JSONEncoder().encode(tags), as: UTF8.self))
-        form.field("thumbHash", prepared.thumbHash)
-        form.field("width", String(prepared.width))
-        form.field("height", String(prepared.height))
-        form.field("aspectRatio", String(Double(prepared.width) / Double(prepared.height)))
-        return try await client.json("photos/upload", method: "POST", body: .form(form), operation: "Upload photo")
+        form.field("entry", String(decoding: try JSONEncoder().encode(entry), as: UTF8.self))
+        form.field("digest", digest)
+        form.file("thumb", filename: "thumb.jpg", type: "image/jpeg", prepared.thumbnail)
+        form.field("mime", "image/png")
+        form.field("meta", String(decoding: try JSONEncoder().encode(meta), as: UTF8.self))
+        let created: Created = try await client.json("entries", method: "POST", body: .form(form), operation: "Create photo entry")
+        let document: EntryDocument = try await client.json("entries/\(created.id)", operation: "Read photo entry")
+        guard let photo = document.photos?.first else { throw ConsumerError.invalid("The new entry has no photo.") }
+        return Photo(
+            id: photo.id, entryId: created.id, caption: document.body, tags: document.meta.tags,
+            width: photo.width, height: photo.height, takenAt: photo.takenAt,
+            occurredAt: document.meta.occurred.timeIntervalSince1970 * 1000,
+            geo: photo.geo, thumbHash: photo.thumbHash
+        )
+    }
+
+    static func milliseconds(_ value: String) -> Int? {
+        Client.date(value).map { Int($0.timeIntervalSince1970 * 1000) }
     }
 }

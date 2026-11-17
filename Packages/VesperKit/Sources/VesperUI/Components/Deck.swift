@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Cards that rest as a stack: closed, the first card shows in full with the edges of up to two
-/// more peeking beneath it; open, every card is laid out. Toggling springs between the two.
 public struct Deck<Data: RandomAccessCollection, Card: View>: View where Data.Element: Identifiable {
     let data: Data
     let open: Bool

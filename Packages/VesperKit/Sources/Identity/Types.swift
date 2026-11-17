@@ -21,10 +21,10 @@ public enum IdentityError: LocalizedError, Sendable {
 
     public var errorDescription: String? {
         switch self {
-        case .signedOut: "Sign in with your you-find.me account."
-        case .expired: "Your you-find.me sign-in expired. Sign in again."
-        case .rejected(let reason): "you-find.me declined the sign-in: \(reason)."
-        case .status(let operation, let code): "you-find.me \(operation) returned \(code)."
+        case .signedOut: "Sign in with your Vesper account."
+        case .expired: "Your Vesper sign-in expired. Sign in again."
+        case .rejected(let reason): "Vesper declined the sign-in: \(reason)."
+        case .status(let operation, let code): "Vesper \(operation) returned \(code)."
         }
     }
 }
@@ -49,4 +49,26 @@ struct TokenResponse: Decodable {
         case expiresIn = "expires_in"
         case refreshToken = "refresh_token"
     }
+}
+
+struct Registration: Decodable {
+    let clientID: String
+
+    enum CodingKeys: String, CodingKey {
+        case clientID = "client_id"
+    }
+}
+
+struct WorkspaceResponse: Decodable {
+    struct Workspace: Decodable {
+        let handle: String
+    }
+
+    struct Profile: Decodable {
+        let name: String
+        let image: URL?
+    }
+
+    let workspace: Workspace
+    let profile: Profile
 }

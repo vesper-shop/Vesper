@@ -75,22 +75,15 @@ struct AtlasView: View {
                 }
                 .overlay(alignment: .top) {
                     #if os(iOS)
-                    if mode == .map, session.photos.isEmpty, let problem = session.problem {
+                    if mode == .map, session.photos.isEmpty, case .failed? = session.problem {
                         Button {
-                            if problem == .signedOut {
-                                model.tab = .settings
-                            } else {
-                                Task { await session.load() }
-                            }
+                            Task { await session.load() }
                         } label: {
-                            Label(
-                                problem == .signedOut ? "Sign in to see your photos here" : "Couldn't load photos · Retry",
-                                systemImage: problem == .signedOut ? "person.crop.circle" : "arrow.clockwise"
-                            )
-                            .font(Theme.Font.meta.weight(.medium))
-                            .foregroundStyle(Theme.foreground)
-                            .padding(.horizontal, Theme.Space.md)
-                            .padding(.vertical, Theme.Space.xs)
+                            Label("Couldn't load photos · Retry", systemImage: "arrow.clockwise")
+                                .font(Theme.Font.meta.weight(.medium))
+                                .foregroundStyle(Theme.foreground)
+                                .padding(.horizontal, Theme.Space.md)
+                                .padding(.vertical, Theme.Space.xs)
                         }
                         .buttonStyle(.plain)
                         .glassEffect(.regular.interactive(), in: .capsule)
@@ -151,7 +144,7 @@ struct AtlasView: View {
             // Panning the map owns horizontal drags, so it does not switch tabs.
             let located = session.photos.filter { $0.geo != nil }
             TileMap(
-                pins: located.map { MapPin(id: $0.id, latitude: $0.geo!.lat, longitude: $0.geo!.lng, image: $0.thumbnailURL) },
+                pins: located.map { MapPin(id: $0.id, latitude: $0.geo!.lat, longitude: $0.geo!.lng, image: { [photo = $0] in try await Moment.image(photo, thumbnail: true) }) },
                 camera: .britain,
                 tracking: tracking,
                 select: { id in path.append(.photos(located, start: located.first { $0.id == id }!)) },

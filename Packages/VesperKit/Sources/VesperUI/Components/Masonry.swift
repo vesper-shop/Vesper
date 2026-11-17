@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// A staggered grid: each element goes to the currently shortest lane, sized by its aspect ratio.
 /// Lanes are lazy stacks, so long photo streams only build visible cells.
 public struct Masonry<Data: RandomAccessCollection, Cell: View>: View where Data.Element: Identifiable {
     let data: Data

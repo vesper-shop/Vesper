@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Lifts content to full size and opacity in the middle of a scroll view and lets it recede a
-/// little at the edges, giving long feeds depth. Off under Reduce Motion.
 public struct ScrollDepth: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var still
 

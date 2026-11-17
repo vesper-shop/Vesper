@@ -54,6 +54,7 @@ public enum Theme {
     /// has no Dynamic Type and its text styles run smaller, so it gets the same sizes fixed.
     public enum Font {
         #if os(iOS)
+        public static let hero = SwiftUI.Font.system(.largeTitle, design: .serif).weight(.semibold)
         public static let display = SwiftUI.Font.title2.weight(.semibold)
         public static let title = SwiftUI.Font.title3.weight(.semibold)
         public static let headline = SwiftUI.Font.headline
@@ -64,6 +65,7 @@ public enum Theme {
         public static let mono = SwiftUI.Font.system(.subheadline, design: .monospaced)
         public static let monoCaption = SwiftUI.Font.system(.caption2, design: .monospaced)
         #else
+        public static let hero = SwiftUI.Font.system(size: 34, weight: .semibold, design: .serif)
         public static let display = SwiftUI.Font.system(size: 22, weight: .semibold)
         public static let title = SwiftUI.Font.system(size: 20, weight: .semibold)
         public static let headline = SwiftUI.Font.system(size: 17, weight: .semibold)

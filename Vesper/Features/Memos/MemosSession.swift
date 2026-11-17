@@ -43,13 +43,6 @@ final class MemosSession {
         }
     }
 
-    func signedOut() {
-        generation += 1
-        clear()
-        problem = .signedOut
-        loading = false
-    }
-
     private func clear() {
         items = []
         tags = []

@@ -13,8 +13,27 @@
 		A10000000000000000000026 /* Identity in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000016 /* Identity */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A1000000000000000000004B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1000000000000000000000A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000006;
+			remoteInfo = Vesper;
+		};
+		A1000000000000000000005B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1000000000000000000000A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000006;
+			remoteInfo = Vesper;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* Vesper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vesper.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000041 /* VesperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VesperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000051 /* VesperUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VesperUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -36,6 +55,16 @@
 			path = Vesper;
 			sourceTree = "<group>";
 		};
+		A10000000000000000000042 /* VesperTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = VesperTests;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000052 /* VesperUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = VesperUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,6 +79,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000000000000000000043 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000053 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -57,6 +100,8 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000002 /* Vesper */,
+				A10000000000000000000042 /* VesperTests */,
+				A10000000000000000000052 /* VesperUITests */,
 				A10000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,6 +110,8 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000001 /* Vesper.app */,
+				A10000000000000000000041 /* VesperTests.xctest */,
+				A10000000000000000000051 /* VesperUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -98,6 +145,48 @@
 			productReference = A10000000000000000000001 /* Vesper.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A10000000000000000000044 /* VesperTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000047 /* Build configuration list for PBXNativeTarget "VesperTests" */;
+			buildPhases = (
+				A10000000000000000000045 /* Sources */,
+				A10000000000000000000043 /* Frameworks */,
+				A10000000000000000000046 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1000000000000000000004A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000042 /* VesperTests */,
+			);
+			name = VesperTests;
+			productName = VesperTests;
+			productReference = A10000000000000000000041 /* VesperTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A10000000000000000000054 /* VesperUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000057 /* Build configuration list for PBXNativeTarget "VesperUITests" */;
+			buildPhases = (
+				A10000000000000000000055 /* Sources */,
+				A10000000000000000000053 /* Frameworks */,
+				A10000000000000000000056 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1000000000000000000005A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000052 /* VesperUITests */,
+			);
+			name = VesperUITests;
+			productName = VesperUITests;
+			productReference = A10000000000000000000051 /* VesperUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -110,6 +199,14 @@
 				TargetAttributes = {
 					A10000000000000000000006 = {
 						CreatedOnToolsVersion = 27.2;
+					};
+					A10000000000000000000044 = {
+						CreatedOnToolsVersion = 27.2;
+						TestTargetID = A10000000000000000000006;
+					};
+					A10000000000000000000054 = {
+						CreatedOnToolsVersion = 27.2;
+						TestTargetID = A10000000000000000000006;
 					};
 				};
 			};
@@ -132,12 +229,28 @@
 			projectRoot = "";
 			targets = (
 				A10000000000000000000006 /* Vesper */,
+				A10000000000000000000044 /* VesperTests */,
+				A10000000000000000000054 /* VesperUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A10000000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000046 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000056 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -154,7 +267,34 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000000000000000000045 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000055 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A1000000000000000000004A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000006 /* Vesper */;
+			targetProxy = A1000000000000000000004B /* PBXContainerItemProxy */;
+		};
+		A1000000000000000000005A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000006 /* Vesper */;
+			targetProxy = A1000000000000000000005B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A1000000000000000000000C /* Debug */ = {
@@ -265,6 +405,64 @@
 			};
 			name = Release;
 		};
+		A10000000000000000000048 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vesper.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Vesper";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = me.youfind.vesper.VesperTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A10000000000000000000049 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vesper.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Vesper";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = me.youfind.vesper.VesperTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A10000000000000000000058 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = me.youfind.vesper.VesperUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Vesper;
+			};
+			name = Debug;
+		};
+		A10000000000000000000059 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = me.youfind.vesper.VesperUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Vesper;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -282,6 +480,24 @@
 			buildConfigurations = (
 				A1000000000000000000000C /* Debug */,
 				A1000000000000000000000D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000047 /* Build configuration list for PBXNativeTarget "VesperTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000048 /* Debug */,
+				A10000000000000000000049 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000057 /* Build configuration list for PBXNativeTarget "VesperUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000058 /* Debug */,
+				A10000000000000000000059 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

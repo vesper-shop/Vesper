@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// A Liquid Glass capsule above the bottom bar that does not interrupt the page. It leaves after
-/// four seconds, or at once when its action is taken.
 public struct ToastModifier: ViewModifier {
     @Binding var message: ToastMessage?
 

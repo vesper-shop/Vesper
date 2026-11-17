@@ -10,7 +10,7 @@ final class Stub: URLProtocol {
     static let state = Mutex((requests: 0, status: 200, body: Data()))
 
     override class func canInit(with request: URLRequest) -> Bool {
-        request.url?.host() == "you-find.me"
+        request.url?.host() == "noted-this.date"
     }
 
     override class func canonicalRequest(for request: URLRequest) -> URLRequest {
@@ -42,6 +42,7 @@ struct IdentityTests {
         URLProtocol.registerClass(Stub.self)
         let session = Session(refreshToken: "r1", account: Account(email: "a@b.c", name: "A", picture: nil))
         try Vault.save(String(decoding: try JSONEncoder().encode(session), as: UTF8.self), for: account)
+        try Vault.save("test-client", for: "\(account)-client \(Identity.scope)")
     }
 
     private func respond(_ status: Int, _ json: String) {
@@ -87,5 +88,36 @@ struct IdentityTests {
         } throws: { error in
             if case IdentityError.signedOut = error { true } else { false }
         }
+    }
+
+    @Test("A callback from another sign-in is rejected before any exchange") func mismatch() async throws {
+        respond(200, "")
+        let identity = Identity(vaultAccount: account)
+        let authorization = try await identity.begin()
+        await #expect {
+            try await identity.complete(URL(string: "vesper://oauth/callback?code=c&state=other")!, authorization)
+        } throws: { error in
+            if case IdentityError.rejected = error { true } else { false }
+        }
+        await #expect {
+            try await identity.complete(URL(string: "vesper://oauth/callback?error=access_denied")!, authorization)
+        } throws: { error in
+            if case IdentityError.rejected("access_denied") = error { true } else { false }
+        }
+        #expect(Stub.state.withLock { $0.requests } == 0)
+        try Vault.delete(account)
+    }
+
+    @Test("A client registered for other scopes is replaced by a new registration") func reregister() async throws {
+        respond(201, #"{"client_id": "fresh"}"#)
+        try Vault.delete("\(account)-client \(Identity.scope)")
+        try Vault.save("stale", for: "\(account)-client entries:read offline_access")
+        let authorization = try await Identity(vaultAccount: account).begin()
+        let items = try #require(URLComponents(url: authorization.url, resolvingAgainstBaseURL: false)?.queryItems)
+        #expect(items.first { $0.name == "client_id" }?.value == "fresh")
+        #expect(Stub.state.withLock { $0.requests } == 1)
+        try Vault.delete(account)
+        try Vault.delete("\(account)-client \(Identity.scope)")
+        try Vault.delete("\(account)-client entries:read offline_access")
     }
 }

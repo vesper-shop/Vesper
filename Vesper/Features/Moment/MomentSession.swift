@@ -22,8 +22,6 @@ final class MomentSession {
     private var locating: Set<PlaceKey> = []
     private let log = Logger(subsystem: "me.youfind.vesper", category: "moment")
 
-    /// Photos grouped by capture day, newest day first and each day read in order, as the
-    /// timeline reads them. Undated photos come last, in the order the API returned them.
     var days: [MomentDay] {
         let calendar = Calendar.current
         var dated: [Date: [(date: Date, photo: Photo)]] = [:]
@@ -56,13 +54,6 @@ final class MomentSession {
             guard current == generation, let problem = failed(error) else { return }
             self.problem = problem
         }
-    }
-
-    func signedOut() {
-        generation += 1
-        clear()
-        problem = .signedOut
-        loading = false
     }
 
     private func clear() {

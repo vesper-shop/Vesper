@@ -13,7 +13,7 @@ struct MomentGrid: View {
             Masonry(session.photos, lanes: width == .regular ? lanes + 2 : lanes, spacing: Theme.Space.xs, ratio: \.ratio) { photo in
                 NavigationLink(value: photo) {
                     Theme.muted
-                        .overlay { PhotoImage(photo: photo, url: photo.thumbnailURL, mode: .fill) }
+                        .overlay { PhotoImage(photo: photo, thumbnail: true, mode: .fill) }
                         .clipShape(.rect(cornerRadius: Theme.Radius.lg))
                         .overlay {
                             RoundedRectangle(cornerRadius: Theme.Radius.lg).strokeBorder(Theme.border)

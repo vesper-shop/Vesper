@@ -6,30 +6,32 @@ public actor Identity {
     public static let shared = Identity()
     public static let callbackScheme = "vesper"
 
-    private static let issuer = URL(string: "https://you-find.me/api/auth/oauth2/")!
-    private static let client = "vesper"
+    private static let issuer = URL(string: "https://noted-this.date/api/auth/oauth2/")!
+    private static let workspace = URL(string: "https://noted-this.date/api/workspace")!
     private static let redirect = "vesper://oauth/callback"
-    private static let resources = ["https://memos.you-find.me", "https://moment.you-find.me", "https://knowledge.you-find.me"]
-    private static let scope = "openid profile email offline_access memos:read memos:write moment:read moment:write knowledge:read knowledge:write"
+    private static let resources = ["https://noted-this.date/mcp"]
+    static let scope = "entries:create entries:read entries:update entries:delete photos:create photos:read tags:read offline_access"
 
-    /// The Keychain item holding the session.
     private let vaultAccount: String
+    /// Vesper checks requested scopes against the ones registered, so a new scope needs a new client.
+    private var clientAccount: String { "\(vaultAccount)-client \(Self.scope)" }
     private var access: (token: String, expiry: Date)?
     private var refreshing: Task<String, any Error>?
     private var epoch = 0
 
-    init(vaultAccount: String = "you-find-me") {
+    init(vaultAccount: String = "vesper") {
         self.vaultAccount = vaultAccount
     }
 
-    public nonisolated func begin() -> Authorization {
+    public func begin() async throws -> Authorization {
+        let client = try await clientID()
         let verifier = Self.random()
         let state = Self.random()
         let challenge = Self.base64URL(Data(SHA256.hash(data: Data(verifier.utf8))))
         var components = URLComponents(url: Self.issuer.appending(path: "authorize"), resolvingAgainstBaseURL: false)!
         components.queryItems = [
             .init(name: "response_type", value: "code"),
-            .init(name: "client_id", value: Self.client),
+            .init(name: "client_id", value: client),
             .init(name: "redirect_uri", value: Self.redirect),
             .init(name: "scope", value: Self.scope),
             .init(name: "state", value: state),
@@ -62,6 +64,10 @@ public actor Identity {
         let account = try await profile(response.accessToken)
         try store(Session(refreshToken: refreshToken, account: account))
         return account
+    }
+
+    public func saved() throws -> Account? {
+        try session()?.account
     }
 
     public func account() async throws -> Account? {
@@ -126,14 +132,14 @@ public actor Identity {
         _ = try await post("revoke", [
             ("token", current.refreshToken),
             ("token_type_hint", "refresh_token"),
-            ("client_id", Self.client),
+            ("client_id", try await clientID()),
         ], operation: "sign-out")
     }
 
     private func exchange(_ fields: [(String, String)]) async throws -> TokenResponse {
         let data = try await post(
             "token",
-            fields + [("client_id", Self.client)] + Self.resources.map { ("resource", $0) },
+            fields + [("client_id", try await clientID())] + Self.resources.map { ("resource", $0) },
             operation: "sign-in"
         )
         let response = try JSONDecoder().decode(TokenResponse.self, from: data)
@@ -168,12 +174,40 @@ public actor Identity {
     }
 
     private func profile(_ token: String) async throws -> Account {
-        var request = URLRequest(url: Self.issuer.appending(path: "userinfo"), timeoutInterval: 30)
+        var request = URLRequest(url: Self.workspace, timeoutInterval: 30)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         let (data, response) = try await URLSession.shared.data(for: request)
         let code = (response as! HTTPURLResponse).statusCode
         guard (200..<300).contains(code) else { throw IdentityError.status(operation: "profile", code: code) }
-        return try JSONDecoder().decode(Account.self, from: data)
+        let workspace = try JSONDecoder().decode(WorkspaceResponse.self, from: data)
+        return Account(
+            email: "@\(workspace.workspace.handle)",
+            name: workspace.profile.name,
+            picture: workspace.profile.image
+        )
+    }
+
+    /// Vesper registers clients dynamically, so the first sign-in registers this app and keeps the id.
+    private func clientID() async throws -> String {
+        if let saved = try Vault.read(clientAccount) { return saved }
+        var request = URLRequest(url: Self.issuer.appending(path: "register"), timeoutInterval: 30)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "client_name": "Vesper",
+            "application_type": "native",
+            "redirect_uris": [Self.redirect],
+            "grant_types": ["authorization_code", "refresh_token"],
+            "response_types": ["code"],
+            "token_endpoint_auth_method": "none",
+            "scope": Self.scope,
+        ])
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let code = (response as! HTTPURLResponse).statusCode
+        guard (200..<300).contains(code) else { throw IdentityError.status(operation: "registration", code: code) }
+        let client = try JSONDecoder().decode(Registration.self, from: data).clientID
+        try Vault.save(client, for: clientAccount)
+        return client
     }
 
     private static func random() -> String {

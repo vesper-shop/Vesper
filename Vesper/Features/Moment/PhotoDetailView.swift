@@ -24,15 +24,8 @@ struct PhotoDetailView: View {
                     Zoomable(zoomed: $zoomed) {
                         withAnimation(Theme.Motion.gentle) { info.toggle() }
                     } content: {
-                        // The cached thumbnail shows while the original downloads.
-                        AsyncImage(url: photo.imageURL, transaction: .init(animation: Theme.Motion.gentle)) { phase in
-                            if let image = phase.image {
-                                image.resizable().scaledToFit()
-                            } else {
-                                PhotoImage(photo: photo, url: photo.thumbnailURL, mode: .fit)
-                            }
-                        }
-                        .aspectRatio(photo.ratio, contentMode: .fit)
+                        PhotoImage(photo: photo, thumbnail: false, mode: .fit)
+                            .aspectRatio(photo.ratio, contentMode: .fit)
                     }
                     .containerRelativeFrame([.horizontal, .vertical])
                 }
@@ -46,7 +39,7 @@ struct PhotoDetailView: View {
         .background {
             ZStack {
                 Color.black
-                PhotoImage(photo: current, url: current.thumbnailURL, mode: .fill)
+                PhotoImage(photo: current, thumbnail: true, mode: .fill)
                     .blur(radius: 60, opaque: true)
                     .overlay(Theme.scrim)
                     .id(current.id)
@@ -72,7 +65,7 @@ struct PhotoDetailView: View {
         .environment(\.colorScheme, .dark)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                ShareLink(item: current.imageURL)
+                ShareLink(item: current.shareURL)
             }
         }
     }
@@ -90,9 +83,7 @@ struct PhotoDetailView: View {
                         Label("Map", systemImage: "mappin.and.ellipse")
                     }
                 }
-                if let format = photo.format {
-                    Text("\(format) · \(photo.width)×\(photo.height)")
-                }
+                Text("\(photo.width)×\(photo.height)")
             }
             .font(Theme.Font.meta)
             .opacity(0.75)
