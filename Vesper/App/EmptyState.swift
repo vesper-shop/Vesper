@@ -1,15 +1,13 @@
 import SwiftUI
 import VesperUI
 
-struct EmptyState<Actions: View>: View {
+struct EmptyState: View {
     let title: LocalizedStringKey
     let message: Text
-    @ViewBuilder let actions: Actions
 
-    init(_ title: LocalizedStringKey, message: Text, @ViewBuilder actions: () -> Actions = { EmptyView() }) {
+    init(_ title: LocalizedStringKey, message: Text) {
         self.title = title
         self.message = message
-        self.actions = actions()
     }
 
     var body: some View {
@@ -18,14 +16,14 @@ struct EmptyState<Actions: View>: View {
                 Image("Qiye")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 112)
+                    .frame(width: 96)
+                    .padding(Theme.Space.md)
+                    .glassEffect(.regular, in: .circle)
                     .accessibilityHidden(true)
                 Text(title).font(Theme.Font.title)
             }
         } description: {
             message.font(Theme.Font.detail)
-        } actions: {
-            actions
         }
     }
 }

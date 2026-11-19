@@ -1,9 +1,16 @@
 import Foundation
 
 public struct Account: Codable, Hashable, Sendable {
-    public let email: String
+    public let handle: String
     public let name: String
     public let picture: URL?
+
+    /// Sessions saved before the rename keep the handle under `email`.
+    enum CodingKeys: String, CodingKey {
+        case handle = "email"
+        case name
+        case picture
+    }
 }
 
 public struct Authorization: Sendable {

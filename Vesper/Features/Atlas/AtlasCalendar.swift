@@ -17,13 +17,13 @@ struct AtlasCalendar: View {
                 ForEach(months) { month in
                     let days = calendar.range(of: .day, in: .month, for: month.month)!
                     let lead = (calendar.component(.weekday, from: month.month) - calendar.firstWeekday + 7) % 7
-                    let count = month.days.values.reduce(0) { $0 + $1.count }
+                    let count = month.entries.values.reduce(0, +)
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(month.month, format: .dateTime.year().month(.wide))
                                 .font(Theme.Font.title)
                             Spacer()
-                            Text("\(count) \(count == 1 ? "photo" : "photos")")
+                            Text("^[\(count) entry](inflect: true)")
                                 .font(Theme.Font.monoCaption)
                                 .foregroundStyle(Theme.mutedForeground)
                         }
@@ -39,22 +39,35 @@ struct AtlasCalendar: View {
                             ForEach(days, id: \.self) { number in
                                 let day = calendar.date(byAdding: .day, value: number - 1, to: month.month)!
                                 let today = calendar.isDateInToday(day)
+                                let photos = month.days[day]
                                 Group {
-                                    if let photos = month.days[day] {
-                                        Button { open(.photos(photos, start: photos[0])) } label: {
+                                    if photos != nil || month.entries[day] != nil {
+                                        Button { open(.day(day)) } label: {
                                             Theme.muted
                                                 .aspectRatio(1, contentMode: .fit)
-                                                .overlay { PhotoImage(photo: photos[0], thumbnail: true, mode: .fill) }
+                                                .overlay {
+                                                    if let photos {
+                                                        PhotoImage(photo: photos[0], thumbnail: true, mode: .fill)
+                                                    }
+                                                }
                                                 .clipShape(.rect(cornerRadius: Theme.Radius.md))
-                                                .overlay(alignment: .topLeading) {
+                                                .overlay(alignment: photos == nil ? .center : .topLeading) {
                                                     Text("\(number)")
                                                         .font(Theme.Font.monoCaption.weight(.semibold))
-                                                        .foregroundStyle(Theme.onDark)
-                                                        .shadow(color: Theme.shadow.opacity(0.6), radius: 2)
+                                                        .foregroundStyle(photos == nil ? Theme.foreground : Theme.onDark)
+                                                        .shadow(color: Theme.shadow.opacity(photos == nil ? 0 : 0.6), radius: 2)
                                                         .padding(4)
                                                 }
+                                                .overlay(alignment: .bottom) {
+                                                    if photos == nil {
+                                                        Circle()
+                                                            .fill(Theme.accent)
+                                                            .frame(width: 5, height: 5)
+                                                            .padding(.bottom, 5)
+                                                    }
+                                                }
                                                 .overlay(alignment: .bottomTrailing) {
-                                                    if photos.count > 1 {
+                                                    if let photos, photos.count > 1 {
                                                         Text("\(photos.count)")
                                                             .font(Theme.Font.monoCaption)
                                                             .foregroundStyle(Theme.onDark)
@@ -63,9 +76,9 @@ struct AtlasCalendar: View {
                                                             .padding(3)
                                                     }
                                                 }
-                                                .matchedTransitionSource(id: photos[0].id, in: zoom)
+                                                .matchedTransitionSource(id: day, in: zoom)
                                         }
-                                        .buttonStyle(.plain)
+                                        .buttonStyle(.press)
                                         .accessibilityLabel(Text(day, format: .dateTime.month().day()))
                                     } else {
                                         Theme.muted.opacity(0.4)

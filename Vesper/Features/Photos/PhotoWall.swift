@@ -2,16 +2,17 @@ import Consumers
 import SwiftUI
 import VesperUI
 
-struct MomentGrid: View {
-    let session: MomentSession
+struct PhotoWall: View {
+    let session: PhotosSession
     let zoom: Namespace.ID
     @AppStorage("moment.lanes") private var lanes = 2
     @Environment(\.horizontalSizeClass) private var width
 
     var body: some View {
+        let count = width == .regular ? lanes + 2 : lanes
         ScrollView {
-            Masonry(session.photos, lanes: width == .regular ? lanes + 2 : lanes, spacing: Theme.Space.xs, ratio: \.ratio) { photo in
-                NavigationLink(value: photo) {
+            Masonry(session.photos, lanes: count, spacing: Theme.Space.xs, ratio: \.ratio) { photo in
+                NavigationLink(value: PhotoStack(photos: session.photos, start: photo)) {
                     Theme.muted
                         .overlay { PhotoImage(photo: photo, thumbnail: true, mode: .fill) }
                         .clipShape(.rect(cornerRadius: Theme.Radius.lg))
@@ -19,12 +20,13 @@ struct MomentGrid: View {
                             RoundedRectangle(cornerRadius: Theme.Radius.lg).strokeBorder(Theme.border)
                         }
                         .matchedTransitionSource(id: photo.id, in: zoom)
-                        .accessibilityLabel(photo.title)
+                        .accessibilityLabel(photo.title.isEmpty ? "Photo" : photo.title)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.press)
+                .contextMenu { PhotoMenu(photo: photo) }
                 .onAppear {
                     // Any lane can hold the newest photos, so the tail of each lane triggers the next page.
-                    if session.photos.suffix(lanes).contains(photo) {
+                    if session.photos.suffix(count).contains(photo) {
                         Task { await session.paginate() }
                     }
                 }
@@ -49,7 +51,7 @@ struct MomentGrid: View {
     }
 }
 
-extension MomentGrid {
+extension PhotoWall {
     struct Skeleton: View {
         @AppStorage("moment.lanes") private var lanes = 2
         @Environment(\.horizontalSizeClass) private var width
@@ -79,5 +81,5 @@ extension MomentGrid {
 }
 
 #Preview("Skeleton") {
-    MomentGrid.Skeleton().background(Theme.background)
+    PhotoWall.Skeleton().background(Theme.background)
 }

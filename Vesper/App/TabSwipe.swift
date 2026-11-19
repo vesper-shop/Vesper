@@ -3,6 +3,7 @@ import VesperUI
 
 struct TabSwipe: ViewModifier {
     @Environment(AppModel.self) private var model
+    @State private var swiped = 0
 
     func body(content: Content) -> some View {
         content.simultaneousGesture(
@@ -14,8 +15,10 @@ struct TabSwipe: ViewModifier {
                           let tab = model.tab.neighbor(dx < 0 ? 1 : -1)
                     else { return }
                     withAnimation(Theme.Motion.gentle) { model.tab = tab }
+                    swiped += 1
                 }
         )
+        .sensoryFeedback(.selection, trigger: swiped)
     }
 }
 

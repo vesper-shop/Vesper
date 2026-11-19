@@ -2,8 +2,8 @@ import Identity
 import Foundation
 
 enum AppTab: CaseIterable, Hashable {
-    case memos
-    case moment
+    case timeline
+    case photos
     case atlas
     case settings
 
@@ -14,7 +14,13 @@ enum AppTab: CaseIterable, Hashable {
     }
 }
 
-enum LoadProblem: Equatable {
+struct Compose: Identifiable, Hashable {
+    let camera: Bool
+
+    var id: Bool { camera }
+}
+
+nonisolated enum LoadProblem: Equatable {
     case signedOut
     case failed(String)
 

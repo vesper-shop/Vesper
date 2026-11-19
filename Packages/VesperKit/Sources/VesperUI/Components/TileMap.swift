@@ -158,9 +158,9 @@ final class PinView: MLNAnnotationView {
         image.image = nil
         loading = Task { [image] in
             do {
-                let data = try await pin.image()
+                let picture = try await pin.image()
                 try Task.checkCancellation()
-                image.image = UIImage(data: data)
+                image.image = UIImage(cgImage: picture)
             } catch is CancellationError {
             } catch {
                 Self.log.error("Pin thumbnail \(pin.id, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")

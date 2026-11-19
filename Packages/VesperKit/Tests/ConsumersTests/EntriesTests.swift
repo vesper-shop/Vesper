@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Consumers
 
-struct MemosTests {
+struct EntriesTests {
     @Test("Strip inline tags", arguments: [
         ("你好 #日常", "你好"),
         ("#开头 正文 #a/b", "正文"),
@@ -10,19 +10,21 @@ struct MemosTests {
         ("a  #tag  b", "a b"),
     ])
     func strip(input: String, expected: String) {
-        #expect(Memos.strip(input) == expected)
+        #expect(Entries.strip(input) == expected)
     }
 
-    @Test("A Vesper entry becomes a memo with its tags as the closing line") func entry() throws {
+    @Test("A Vesper entry keeps its tags as the closing line and its photos") func entry() throws {
         let json = Data("""
         {"meta":{"id":"1","occurred":"2026-08-05T11:33:17.191Z","visibility":"private",
-        "pinned":"2026-08-05T11:33:17.191Z","favorite":null,"archived":null,"tags":["a"],"photos":["3f1c9a52-1111-4222-8333-944455556666"]},
-        "body":"hi"}
+        "pinned":"2026-08-05T11:33:17.191Z","favorite":null,"archived":null,"tags":["a"]},
+        "body":"hi\\n\\nmore","photos":[{"id":"p","width":4,"height":3,"takenAt":null,"geo":null,"thumbHash":"VRgKFQKAhcJ4h2hotWelaGHACDNb"}]}
         """.utf8)
-        let memo = try Client.decoder.decode(EntryDocument.self, from: json).memo
-        #expect(memo.content == "hi\n\n#a")
-        #expect(memo.visibility == .private && memo.pinned && !memo.favorite)
-        #expect(abs(memo.createdAt.timeIntervalSince1970 - 1_785_929_597.191) < 0.001)
+        let entry = try Client.decoder.decode(EntryDocument.self, from: json).entry
+        #expect(entry.content == "hi\n\nmore\n\n#a")
+        #expect(entry.visibility == .private && entry.pinned && !entry.favorite)
+        #expect(abs(entry.occurred.timeIntervalSince1970 - 1_785_929_597.191) < 0.001)
+        let photo = try #require(entry.photos.first)
+        #expect(photo.entryId == "1" && photo.title == "hi" && photo.date == entry.occurred)
     }
 
     @Test("Dates parse with or without fractions and with offsets") func dates() throws {
@@ -33,21 +35,21 @@ struct MemosTests {
 
     @Test("Body and tags split as Vesper stores them") func body() {
         let content = "Line #inline\n\n#daily #Rust"
-        #expect(Memos.body(content) == "Line #inline")
-        #expect(Memos.tags(in: content) == ["inline", "daily", "rust"])
+        #expect(Entries.body(content) == "Line #inline")
+        #expect(Entries.tags(in: content) == ["inline", "daily", "rust"])
     }
 
     @Test("Display membership") func display() {
-        let memo = Memo.sample
-        #expect(MemoDisplay.all.contains(memo))
-        #expect(MemoDisplay.favorites.contains(memo))
-        #expect(!MemoDisplay.archived.contains(memo))
+        let entry = Entry.sample
+        #expect(EntryDisplay.all.contains(entry))
+        #expect(EntryDisplay.favorites.contains(entry))
+        #expect(!EntryDisplay.archived.contains(entry))
     }
 
-    @Test("A Vesper photo splits its caption and shares the Moment page") func photo() {
+    @Test("A Vesper photo splits its caption and shares its entry's page") func photo() {
         #expect(Photo.sample.title == "一切都将结束")
         #expect(Photo.sample.description == "照片摄于傍晚准备回诺丁汉途中")
-        #expect(Photo.sample.shareURL.absoluteString == "https://moment.you-find.me/photos/fc20de3d-5d7e-4958-94ae-5dbdb47edc66")
+        #expect(Photo.sample.shareURL.absoluteString == "https://noted-this.date/e/\(Photo.sample.entryId)")
         #expect(Photo.sample.date != nil)
     }
 

@@ -31,15 +31,17 @@ enum AtlasMode: String, CaseIterable, Identifiable {
     }
 }
 
+/// `days` are each day's photos; `entries` count every entry a day has, with photos or not.
 struct AtlasMonth: Identifiable {
     let month: Date
     let days: [Date: [Photo]]
+    let entries: [Date: Int]
 
     var id: Date { month }
 }
 
 enum AtlasRoute: Hashable {
-    case photos([Photo], start: Photo)
+    case day(Date)
 }
 
 extension MapCamera {

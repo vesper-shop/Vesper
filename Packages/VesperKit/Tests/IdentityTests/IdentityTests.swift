@@ -40,7 +40,7 @@ struct IdentityTests {
 
     init() throws {
         URLProtocol.registerClass(Stub.self)
-        let session = Session(refreshToken: "r1", account: Account(email: "a@b.c", name: "A", picture: nil))
+        let session = Session(refreshToken: "r1", account: Account(handle: "a@b.c", name: "A", picture: nil))
         try Vault.save(String(decoding: try JSONEncoder().encode(session), as: UTF8.self), for: account)
         try Vault.save("test-client", for: "\(account)-client \(Identity.scope)")
     }
@@ -60,6 +60,20 @@ struct IdentityTests {
         #expect(Stub.state.withLock { $0.requests } == 1)
         let stored = try JSONDecoder().decode(Session.self, from: Data(try #require(try Vault.read(account)).utf8))
         #expect(stored.refreshToken == "r2")
+        try Vault.delete(account)
+    }
+
+    @Test("Without its client a refresh reads as signed out, keeps the session and registers nothing") func clientless() async throws {
+        respond(201, #"{"client_id": "fresh"}"#)
+        try Vault.delete("\(account)-client \(Identity.scope)")
+        let identity = Identity(vaultAccount: account)
+        await #expect {
+            try await identity.token()
+        } throws: { error in
+            if case IdentityError.signedOut = error { true } else { false }
+        }
+        #expect(Stub.state.withLock { $0.requests } == 0)
+        #expect(try Vault.read(account) != nil)
         try Vault.delete(account)
     }
 

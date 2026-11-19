@@ -21,10 +21,10 @@ enum Palette {
 
     static let brandLight: UInt32 = 0x963C5A
     static let brandDark: UInt32 = 0xD8A0B2
-    static let successLight: UInt32 = 0x4D5E38
-    static let successDark: UInt32 = 0xA8B890
     static let errorLight: UInt32 = 0xA03030
     static let errorDark: UInt32 = 0xD06464
+    static let lilacLight: UInt32 = 0xB0A2DC
+    static let lilacDark: UInt32 = 0x51477A
 }
 
 extension Color {

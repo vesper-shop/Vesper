@@ -6,8 +6,7 @@ struct Splash: View {
     @State private var gathered = false
 
     var body: some View {
-        Theme.background
-            .ignoresSafeArea()
+        Backdrop()
             .overlay {
                 VStack(spacing: Theme.Space.md) {
                     Text("Vesper")

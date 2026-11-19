@@ -3,7 +3,7 @@ import SwiftUI
 import VesperUI
 
 struct RootView: View {
-    @State private var model = AppModel()
+    @Bindable var model: AppModel
     @State private var launching = true
     @State private var played = false
 
@@ -11,11 +11,11 @@ struct RootView: View {
         Group {
             if model.account != nil {
                 TabView(selection: $model.tab) {
-                    Tab("Memos", systemImage: "note.text", value: AppTab.memos) {
-                        MemosView()
+                    Tab("Timeline", systemImage: "text.below.photo", value: AppTab.timeline) {
+                        TimelineView()
                     }
-                    Tab("Moment", systemImage: "photo.on.rectangle.angled", value: AppTab.moment) {
-                        MomentView()
+                    Tab("Photos", systemImage: "photo.on.rectangle.angled", value: AppTab.photos) {
+                        PhotosView()
                     }
                     Tab("Atlas", systemImage: "map", value: AppTab.atlas) {
                         AtlasView()
@@ -24,9 +24,11 @@ struct RootView: View {
                         SettingsView()
                     }
                 }
+                .tabViewStyle(.sidebarAdaptable)
                 #if os(iOS)
                 .tabBarMinimizeBehavior(.onScrollDown)
                 #endif
+                .sheet(item: $model.compose) { EntryEditor(entry: nil, camera: $0.camera) }
                 .transition(.opacity)
             } else if model.read {
                 SignInView().transition(.opacity)
@@ -39,7 +41,7 @@ struct RootView: View {
             }
         }
         // After two seconds a slow network is left to the page's skeleton.
-        .onChange(of: model.memos.loading) { lift() }
+        .onChange(of: model.timeline.loading) { lift() }
         .onChange(of: model.read) { lift() }
         .onChange(of: model.expired) {
             guard model.expired else { return }
@@ -65,17 +67,18 @@ struct RootView: View {
             }
             withAnimation(Theme.Motion.gentle) { launching = false }
         }
+        .onOpenURL { url in Route(url).map(model.open) }
         .environment(model)
     }
 }
 
 extension RootView {
     private func lift() {
-        guard played, model.read, model.account == nil || !model.memos.loading else { return }
+        guard played, model.read, model.account == nil || !model.timeline.loading else { return }
         withAnimation(Theme.Motion.gentle) { launching = false }
     }
 }
 
 #Preview {
-    RootView()
+    RootView(model: AppModel())
 }

@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct ToastModifier: ViewModifier {
     @Binding var message: ToastMessage?
+    @GestureState private var drag: CGFloat = 0
 
     public func body(content: Content) -> some View {
         content
@@ -26,6 +27,16 @@ public struct ToastModifier: ViewModifier {
                     .padding(.horizontal, 18)
                     .padding(.vertical, 12)
                     .glassEffect(.regular.interactive(), in: .capsule)
+                    .offset(y: drag > 0 ? drag : drag / 4)
+                    .gesture(
+                        DragGesture(minimumDistance: 6)
+                            .updating($drag) { value, drag, _ in drag = value.translation.height }
+                            .onEnded { value in
+                                guard value.translation.height > 24 || value.predictedEndTranslation.height > 80 else { return }
+                                withAnimation(Theme.Motion.quick) { self.message = nil }
+                            }
+                    )
+                    .animation(Theme.Motion.bouncy, value: drag == 0)
                     .padding(.horizontal, Theme.Space.xl)
                     .padding(.bottom, Theme.Space.sm)
                     .transition(.move(edge: .bottom).combined(with: .opacity))

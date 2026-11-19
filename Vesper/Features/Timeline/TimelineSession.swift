@@ -3,26 +3,26 @@ import Foundation
 import Observation
 
 @Observable
-final class MemosSession {
-    var filters = MemoFilters()
+final class TimelineSession {
+    var filters = EntryFilters()
     var pinnedOpen = false
     var notice: String?
 
-    private(set) var items: [MemoItem] = []
+    private(set) var items: [EntryItem] = []
     private(set) var tags: [TagCount] = []
     private(set) var cursor: String?
     private(set) var loading = true
     private(set) var paginating = false
     private(set) var problem: LoadProblem?
-    private(set) var busy: Set<Memo.ID> = []
+    private(set) var busy: Set<Entry.ID> = []
 
     /// Responses from superseded requests are dropped.
     private var generation = 0
 
-    var sections: (pinned: [MemoItem], timeline: [MemoItem]) {
+    var sections: (pinned: [EntryItem], timeline: [EntryItem]) {
         guard !filters.active else { return ([], items) }
-        let sorted = items.sorted { $0.memo.createdAt > $1.memo.createdAt }
-        return (sorted.filter(\.memo.pinned), sorted.filter { !$0.memo.pinned })
+        let sorted = items.sorted { $0.entry.occurred > $1.entry.occurred }
+        return (sorted.filter(\.entry.pinned), sorted.filter { !$0.entry.pinned })
     }
 
     func load() async {
@@ -31,8 +31,8 @@ final class MemosSession {
         loading = true
         defer { if current == generation { loading = false } }
         do {
-            let page = try await Memos.list(filters: filters)
-            let items = try page.memos.map(MemoItem.init)
+            let page = try await Entries.list(filters: filters)
+            let items = try page.entries.map(EntryItem.init)
             guard current == generation else { return }
             self.items = items
             cursor = page.nextCursor
@@ -61,9 +61,9 @@ final class MemosSession {
         paginating = true
         defer { paginating = false }
         do {
-            let page = try await Memos.list(cursor: cursor, filters: filters)
+            let page = try await Entries.list(cursor: cursor, filters: filters)
             let known = Set(items.map(\.id))
-            let next = try page.memos.filter { !known.contains($0.id) }.map(MemoItem.init)
+            let next = try page.entries.filter { !known.contains($0.id) }.map(EntryItem.init)
             guard current == generation else { return }
             items += next
             self.cursor = page.nextCursor
@@ -74,35 +74,30 @@ final class MemosSession {
 
     func syncTags() async {
         do {
-            tags = try await Memos.tags()
+            tags = try await Entries.tags()
         } catch {
             if case .failed? = failed(error) { notice = error.localizedDescription }
         }
     }
 
-    func create(content: String, visibility: Memo.Visibility) async throws {
-        _ = try await Memos.create(content: content, visibility: visibility)
-        await load()
+    /// `content` nil keeps the text, so an entry of photos alone can still change visibility.
+    func edit(_ entry: Entry, content: String?, visibility: Entry.Visibility) async throws {
+        try apply(await Entries.update(entry.id, EntryUpdate(content: content, visibility: visibility)))
         await syncTags()
     }
 
-    func edit(_ memo: Memo, content: String, visibility: Memo.Visibility) async throws {
-        try apply(await Memos.update(memo.id, MemoUpdate(content: content, visibility: visibility)))
-        await syncTags()
-    }
-
-    /// Returns the memo as the server now has it, or nil after reporting a failure.
+    /// Returns the entry as the server now has it, or nil after reporting a failure.
     @discardableResult
-    func toggle(_ flag: MemoFlag, of memo: Memo) async -> Memo? {
+    func toggle(_ flag: EntryFlag, of entry: Entry) async -> Entry? {
         let update = switch flag {
-        case .pinned: MemoUpdate(pinned: !memo.pinned)
-        case .favorite: MemoUpdate(favorite: !memo.favorite)
-        case .archived: MemoUpdate(archived: !memo.archived)
+        case .pinned: EntryUpdate(pinned: !entry.pinned)
+        case .favorite: EntryUpdate(favorite: !entry.favorite)
+        case .archived: EntryUpdate(archived: !entry.archived)
         }
-        busy.insert(memo.id)
-        defer { busy.remove(memo.id) }
+        busy.insert(entry.id)
+        defer { busy.remove(entry.id) }
         do {
-            let updated = try await Memos.update(memo.id, update)
+            let updated = try await Entries.update(entry.id, update)
             try apply(updated)
             return updated
         } catch {
@@ -111,22 +106,22 @@ final class MemosSession {
         }
     }
 
-    func delete(_ memo: Memo) async {
-        busy.insert(memo.id)
-        defer { busy.remove(memo.id) }
+    func delete(_ entry: Entry) async {
+        busy.insert(entry.id)
+        defer { busy.remove(entry.id) }
         do {
-            try await Memos.delete(memo.id)
-            items.removeAll { $0.id == memo.id }
+            try await Entries.delete(entry.id)
+            items.removeAll { $0.id == entry.id }
             await syncTags()
         } catch {
             notice = error.localizedDescription
         }
     }
 
-    private func apply(_ memo: Memo) throws {
-        guard let index = items.firstIndex(where: { $0.id == memo.id }) else { return }
-        if filters.display.contains(memo) {
-            items[index] = try MemoItem(memo)
+    private func apply(_ entry: Entry) throws {
+        guard let index = items.firstIndex(where: { $0.id == entry.id }) else { return }
+        if filters.display.contains(entry) {
+            items[index] = try EntryItem(entry)
         } else {
             items.remove(at: index)
         }

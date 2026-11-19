@@ -54,13 +54,14 @@ struct PhotoDetailView: View {
                 panel(current).transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .navigationTitle(current.title)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
-        // The page is always black, so its title and floating buttons are always the dark scheme's white.
+        // The page is always black, so its floating buttons are always the dark scheme's white.
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarVisibility(.hidden, for: .tabBar)
+        .toolbarVisibility(info ? .visible : .hidden, for: .navigationBar)
+        .statusBarHidden(!info)
         #endif
         .environment(\.colorScheme, .dark)
         .toolbar {
@@ -72,14 +73,24 @@ struct PhotoDetailView: View {
 
     private func panel(_ photo: Photo) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.xs) {
-            Text(photo.title)
-                .font(Theme.Font.title)
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.xs) {
+                Text(photo.title)
+                    .font(Theme.Font.title)
+                    .lineLimit(2)
+                Spacer(minLength: 0)
+                if photos.count > 1 {
+                    Text("\(photos.firstIndex { $0.id == photo.id }! + 1) / \(photos.count)")
+                        .font(Theme.Font.monoCaption)
+                        .contentTransition(.numericText())
+                        .opacity(0.6)
+                }
+            }
             HStack(spacing: Theme.Space.sm) {
                 if let date = photo.date {
                     Text(date, format: .dateTime.year().month().day().hour().minute())
                 }
-                if let geo = photo.geo {
-                    Link(destination: URL(string: "https://maps.apple.com/?ll=\(geo.lat),\(geo.lng)")!) {
+                if let map = photo.mapURL {
+                    Link(destination: map) {
                         Label("Map", systemImage: "mappin.and.ellipse")
                     }
                 }
@@ -109,12 +120,22 @@ struct PhotoDetailView: View {
         .foregroundStyle(Theme.onDark)
         .tint(Theme.onDark)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, Theme.Space.lg)
-        .padding(.top, 72)
-        .padding(.bottom, Theme.Space.sm)
-        .background {
-            LinearGradient(colors: [.clear, Theme.scrim], startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea()
+        .padding(Theme.Space.lg)
+        .glassEffect(.regular, in: .rect(cornerRadius: 28))
+        .frame(maxWidth: Theme.readable)
+        .padding(.horizontal, Theme.Space.sm)
+        .padding(.bottom, Theme.Space.xs)
+        .animation(Theme.Motion.quick, value: photo.id)
+    }
+}
+
+extension View {
+    func photoStacks(_ zoom: Namespace.ID) -> some View {
+        navigationDestination(for: PhotoStack.self) { stack in
+            PhotoDetailView(photos: stack.photos, start: stack.start)
+                #if os(iOS)
+                .navigationTransition(.zoom(sourceID: stack.start.id, in: zoom))
+                #endif
         }
     }
 }

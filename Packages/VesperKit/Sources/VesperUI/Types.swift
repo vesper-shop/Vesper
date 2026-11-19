@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 public struct TagChip: Hashable, Sendable {
@@ -10,14 +11,27 @@ public struct TagChip: Hashable, Sendable {
     }
 }
 
+public enum Route: String, Sendable {
+    case write
+    case shoot
+    case atlas
+
+    public init?(_ url: URL) {
+        guard url.scheme == "vesper", let host = url.host() else { return nil }
+        self.init(rawValue: host)
+    }
+
+    public var url: URL { URL(string: "vesper://\(rawValue)")! }
+}
+
 /// Equal by id, since the image loader cannot be compared.
 public struct MapPin: Identifiable, Hashable, Sendable {
     public let id: String
     public let latitude: Double
     public let longitude: Double
-    public let image: @Sendable () async throws -> Data
+    public let image: @Sendable () async throws -> CGImage
 
-    public init(id: String, latitude: Double, longitude: Double, image: @escaping @Sendable () async throws -> Data) {
+    public init(id: String, latitude: Double, longitude: Double, image: @escaping @Sendable () async throws -> CGImage) {
         self.id = id
         self.latitude = latitude
         self.longitude = longitude

@@ -2,8 +2,8 @@
 import Foundation
 
 /// Wire-format samples for previews and tests, decoded through the production decoder.
-extension Memo {
-    public static let sample: Memo = try! Client.decoder.decode(EntryDocument.self, from: Data("""
+extension Entry {
+    public static let sample: Entry = try! Client.decoder.decode(EntryDocument.self, from: Data("""
     {
       "meta": {
         "id": "a3105774-2e43-45fa-aeec-c355db7e2e07",
@@ -12,12 +12,11 @@ extension Memo {
         "pinned": "2026-05-12T00:50:00.000Z",
         "favorite": "2026-05-12T00:50:00.000Z",
         "archived": null,
-        "tags": ["日常"],
-        "photos": []
+        "tags": ["日常"]
       },
       "body": "你好👋 这是我的第一个 **memo**，纪念一下\\n主页 https://you-find.me\\n\\n- [x] 写第一条\\n- [ ] 写第二条\\n\\n> 引用一句话"
     }
-    """.utf8)).memo
+    """.utf8)).entry
 }
 
 extension Photo {

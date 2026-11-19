@@ -5,11 +5,12 @@ import Vault
 public actor Identity {
     public static let shared = Identity()
     public static let callbackScheme = "vesper"
+    public static let origin = URL(string: "https://noted-this.date")!
 
-    private static let issuer = URL(string: "https://noted-this.date/api/auth/oauth2/")!
-    private static let workspace = URL(string: "https://noted-this.date/api/workspace")!
+    private static let issuer = origin.appending(path: "api/auth/oauth2/")
+    private static let workspace = origin.appending(path: "api/workspace")
     private static let redirect = "vesper://oauth/callback"
-    private static let resources = ["https://noted-this.date/mcp"]
+    private static let resources = [origin.appending(path: "mcp").absoluteString]
     static let scope = "entries:create entries:read entries:update entries:delete photos:create photos:read tags:read offline_access"
 
     private let vaultAccount: String
@@ -57,7 +58,7 @@ public actor Identity {
             ("code", code),
             ("redirect_uri", Self.redirect),
             ("code_verifier", authorization.verifier),
-        ])
+        ], client: try await clientID())
         guard let refreshToken = response.refreshToken else {
             throw IdentityError.rejected("no refresh token was issued")
         }
@@ -97,10 +98,11 @@ public actor Identity {
         }
         let epoch = epoch
         let task = Task {
-            guard let session = try session() else { throw IdentityError.signedOut }
+            // A refresh token belongs to the client it was issued to, so a refresh never registers one.
+            guard let session = try session(), let client = try Vault.read(clientAccount) else { throw IdentityError.signedOut }
             let response: TokenResponse
             do {
-                response = try await exchange([("grant_type", "refresh_token"), ("refresh_token", session.refreshToken)])
+                response = try await exchange([("grant_type", "refresh_token"), ("refresh_token", session.refreshToken)], client: client)
             } catch IdentityError.expired {
                 try Vault.delete(vaultAccount)
                 throw IdentityError.signedOut
@@ -111,6 +113,8 @@ public actor Identity {
             }
             if let rotated = response.refreshToken {
                 try store(Session(refreshToken: rotated, account: session.account))
+                // Saving again moves a client kept from before keychain sharing to where widgets read.
+                try Vault.save(client, for: clientAccount)
             }
             return response.accessToken
         }
@@ -136,10 +140,10 @@ public actor Identity {
         ], operation: "sign-out")
     }
 
-    private func exchange(_ fields: [(String, String)]) async throws -> TokenResponse {
+    private func exchange(_ fields: [(String, String)], client: String) async throws -> TokenResponse {
         let data = try await post(
             "token",
-            fields + [("client_id", try await clientID())] + Self.resources.map { ("resource", $0) },
+            fields + [("client_id", client)] + Self.resources.map { ("resource", $0) },
             operation: "sign-in"
         )
         let response = try JSONDecoder().decode(TokenResponse.self, from: data)
@@ -181,7 +185,7 @@ public actor Identity {
         guard (200..<300).contains(code) else { throw IdentityError.status(operation: "profile", code: code) }
         let workspace = try JSONDecoder().decode(WorkspaceResponse.self, from: data)
         return Account(
-            email: "@\(workspace.workspace.handle)",
+            handle: "@\(workspace.workspace.handle)",
             name: workspace.profile.name,
             picture: workspace.profile.image
         )

@@ -15,16 +15,14 @@ struct Client {
         return decoder
     }()
 
+    static func day(_ date: Date) -> String {
+        date.formatted(Date.ISO8601FormatStyle(timeZone: .current).year().month().day())
+    }
+
     /// Vesper writes ISO 8601 with an offset, with or without fractional seconds.
     static func date(_ text: String) -> Date? {
         let formats = [Date.ISO8601FormatStyle(includingFractionalSeconds: true), Date.ISO8601FormatStyle()]
         return formats.lazy.compactMap { try? $0.parse(text) }.first
-    }
-
-    let api: ConsumerAPI
-
-    init(_ api: ConsumerAPI) {
-        self.api = api
     }
 
     func json<T: Decodable>(
@@ -44,7 +42,7 @@ struct Client {
         body: RequestBody? = nil,
         operation: String
     ) async throws -> Data {
-        var url = api.baseURL.appending(path: "api").appending(path: path)
+        var url = Identity.origin.appending(path: "api").appending(path: path)
         if !query.isEmpty { url.append(queryItems: query) }
         var request = URLRequest(url: url, timeoutInterval: 30)
         request.httpMethod = method

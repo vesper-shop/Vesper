@@ -1,14 +1,15 @@
 <div align="center">
   <h1>Vesper for Apple</h1>
-  <p>Memos, Moment and Atlas, native on iPhone, iPad and Mac.</p>
+  <p>Your Vesper journal, native on iPhone, iPad and Mac.</p>
 </div>
 
 ## Features
 
-- **Memos** — a card feed with Markdown, pins, search and tags; compose with `#tag` suggestions
-- **Moment** — a timeline or grid of photos, with ThumbHash placeholders and a zoomable pager
-- **Atlas** — every photo on a calendar and on a map
-- **One sign-in** — you-find.me OAuth with PKCE; the token stays in the Keychain
+- **Timeline** — entries of Markdown with up to four photos; pins, favorites, archive, search and tags
+- **Photos** — every photo as a wall, with ThumbHash placeholders and a zoomable pager
+- **Atlas** — every entry on a calendar, every photo on a map
+- **Widgets and shortcuts** — On This Day and Heatmap widgets, Control Center buttons to write or shoot, and "Write in Vesper" for Siri
+- **One sign-in** — Vesper OAuth with PKCE; the token stays in a Keychain group the widgets share
 
 ## Develop
 

@@ -45,6 +45,7 @@ public enum Vault {
         guard status == errSecSuccess || status == errSecItemNotFound else { throw Failure(status: status) }
     }
 
+    /// No access group: new items land in the entitlements' first group, which the widgets share.
     private static func query(_ account: String) -> [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,

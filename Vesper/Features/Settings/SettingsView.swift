@@ -24,16 +24,14 @@ struct SettingsView: View {
                 } header: {
                     Text("Storage")
                 } footer: {
-                    Text("Moment photos are kept on this device so they open instantly; they download again when needed.")
+                    Text("Photos are kept on this device so they open instantly; they download again when needed.")
                 }
                 Section("About") {
                     LabeledContent("Version") {
                         Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String)
                     }
-                    ForEach(ConsumerAPI.allCases) { api in
-                        Link(destination: api.baseURL) {
-                            Label(api.baseURL.host()!, systemImage: "safari")
-                        }
+                    Link(destination: Identity.origin) {
+                        Label(Identity.origin.host()!, systemImage: "safari")
                     }
                 }
             }
@@ -72,7 +70,7 @@ private struct AccountSection: View {
                     .overlay { Circle().strokeBorder(Theme.border) }
                     VStack(alignment: .leading, spacing: Theme.Space.xxs) {
                         Text(account.name).font(Theme.Font.title)
-                        Text(account.email)
+                        Text(account.handle)
                             .font(Theme.Font.detail)
                             .foregroundStyle(Theme.mutedForeground)
                     }
@@ -87,7 +85,7 @@ private struct AccountSection: View {
         } header: {
             Text("Account")
         } footer: {
-            Text("One Vesper sign-in opens Memos, Moment and Knowledge.")
+            Text("Signed in with your Vesper passkey; widgets and Siri use the same account.")
         }
         .disabled(working)
         .task {

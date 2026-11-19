@@ -1,34 +1,16 @@
 import CoreGraphics
 import Foundation
+import Identity
 
 // MARK: - Services
 
-public enum ConsumerAPI: String, CaseIterable, Identifiable, Sendable {
-    case memos
-    case moment
-
-    public var id: String { rawValue }
-
-    public var title: String {
-        switch self {
-        case .memos: "Memos"
-        case .moment: "Moment"
-        }
-    }
-
-    /// Both read Vesper; memos are entries without photos.
-    public var baseURL: URL { URL(string: "https://noted-this.date")! }
-}
-
 public enum ConsumerError: LocalizedError, Sendable {
     case status(operation: String, code: Int)
-    case invalid(String)
     case media(String)
 
     public var errorDescription: String? {
         switch self {
         case .status(let operation, let code): "\(operation) returned \(code)."
-        case .invalid(let message): message
         case .media(let message): "The photo could not be processed: \(message)."
         }
     }
@@ -68,27 +50,29 @@ struct Multipart {
     }
 }
 
-// MARK: - Memos
+// MARK: - Entries
 
-public struct Memo: Identifiable, Hashable, Sendable {
+public struct Entry: Identifiable, Hashable, Sendable {
     public enum Visibility: String, Codable, CaseIterable, Sendable {
         case `public`
         case `private`
     }
 
+    public static let photoLimit = 4
+
     public let id: String
     public let content: String
     public let tags: [String]
-    public let createdAt: Date
-    public let updatedAt: Date
+    public let occurred: Date
     public let visibility: Visibility
     public let pinned: Bool
     public let favorite: Bool
     public let archived: Bool
+    public let photos: [Photo]
 }
 
-public struct MemoPage: Sendable {
-    public let memos: [Memo]
+public struct EntryPage: Sendable {
+    public let entries: [Entry]
     public let nextCursor: String?
 }
 
@@ -96,31 +80,37 @@ struct EntryDocument: Decodable {
     struct Meta: Decodable {
         let id: String
         let occurred: Date
-        let visibility: Memo.Visibility
+        let visibility: Entry.Visibility
         let pinned: String?
         let favorite: String?
         let archived: String?
         let tags: [String]
-        let photos: [String]
     }
 
     let meta: Meta
     let body: String
     let photos: [EntryPhoto]?
 
-    var memo: Memo {
+    var entry: Entry {
         let line = meta.tags.map { "#\($0)" }.joined(separator: " ")
         let trimmed = body.replacing(/\s+$/, with: "")
-        return Memo(
+        return Entry(
             id: meta.id,
             content: line.isEmpty ? trimmed : "\(trimmed)\n\n\(line)",
             tags: meta.tags,
-            createdAt: meta.occurred,
-            updatedAt: meta.occurred,
+            occurred: meta.occurred,
             visibility: meta.visibility,
             pinned: meta.pinned != nil,
             favorite: meta.favorite != nil,
-            archived: meta.archived != nil
+            archived: meta.archived != nil,
+            photos: (photos ?? []).map { photo in
+                Photo(
+                    id: photo.id, entryId: meta.id, caption: body, tags: meta.tags,
+                    width: photo.width, height: photo.height, takenAt: photo.takenAt,
+                    occurredAt: meta.occurred.timeIntervalSince1970 * 1000,
+                    geo: photo.geo, thumbHash: photo.thumbHash
+                )
+            }
         )
     }
 }
@@ -142,7 +132,7 @@ struct DocumentPage: Decodable {
 struct EntrySummaries: Decodable {
     struct Summary: Decodable {
         let id: String
-        let photos: [EntryPhoto]
+        let occurredAt: Double
     }
 
     let entries: [Summary]
@@ -153,8 +143,8 @@ struct Created: Decodable {
     let id: String
 }
 
-/// Which slice of the feed a list reads; the API excludes archived memos unless asked.
-public enum MemoDisplay: String, CaseIterable, Identifiable, Sendable {
+/// Which slice of the timeline a list reads; the API excludes archived entries unless asked.
+public enum EntryDisplay: String, CaseIterable, Identifiable, Sendable {
     case all
     case `public`
     case favorites
@@ -162,39 +152,40 @@ public enum MemoDisplay: String, CaseIterable, Identifiable, Sendable {
 
     public var id: Self { self }
 
-    public func contains(_ memo: Memo) -> Bool {
+    public func contains(_ entry: Entry) -> Bool {
         switch self {
-        case .all: !memo.archived
-        case .public: memo.visibility == .public && !memo.archived
-        case .favorites: memo.favorite && !memo.archived
-        case .archived: memo.archived
+        case .all: !entry.archived
+        case .public: entry.visibility == .public && !entry.archived
+        case .favorites: entry.favorite && !entry.archived
+        case .archived: entry.archived
         }
     }
 }
 
-public struct MemoFilters: Hashable, Sendable {
-    public var display = MemoDisplay.all
+public struct EntryFilters: Hashable, Sendable {
+    public var display = EntryDisplay.all
     public var search = ""
     public var tag: String?
+    public var day: Date?
 
     public init() {}
 
     public var active: Bool {
-        display != .all || tag != nil || !search.isEmpty
+        display != .all || tag != nil || day != nil || !search.isEmpty
     }
 }
 
 /// A PATCH body; nil fields are left unchanged.
-public struct MemoUpdate: Sendable {
+public struct EntryUpdate: Sendable {
     public var content: String?
-    public var visibility: Memo.Visibility?
+    public var visibility: Entry.Visibility?
     public var pinned: Bool?
     public var favorite: Bool?
     public var archived: Bool?
 
     public init(
         content: String? = nil,
-        visibility: Memo.Visibility? = nil,
+        visibility: Entry.Visibility? = nil,
         pinned: Bool? = nil,
         favorite: Bool? = nil,
         archived: Bool? = nil
@@ -211,20 +202,21 @@ public struct MemoUpdate: Sendable {
 struct EntryPatch: Encodable {
     let body: String?
     let tags: [String]?
-    let visibility: Memo.Visibility?
+    let visibility: Entry.Visibility?
     let pinned: Bool?
     let favorite: Bool?
     let archived: Bool?
 }
 
-// MARK: - Moment
-
-struct PhotoEntry: Encodable {
+/// A new entry; `occurredAt` nil lets Vesper use the time it arrives.
+struct EntryDraft: Encodable {
     let body: String
     let tags: [String]
-    let visibility: Memo.Visibility
+    let visibility: Entry.Visibility
     let occurredAt: Int?
 }
+
+// MARK: - Photos
 
 /// Vesper's schema requires every field, null when unknown.
 struct PhotoMeta: Encodable {
@@ -268,6 +260,7 @@ public struct Photo: Decodable, Identifiable, Hashable, Sendable {
     public let id: String
     public let entryId: String
     public let thumbHash: String?
+    /// The first paragraph of the entry's text, empty when the entry has none.
     public let title: String
     public let width: Int
     public let height: Int
@@ -276,7 +269,8 @@ public struct Photo: Decodable, Identifiable, Hashable, Sendable {
     public let description: String?
     public let geo: Geo?
 
-    public var shareURL: URL { URL(string: "https://moment.you-find.me/photos/\(id)")! }
+    /// The public entry page; it opens only for entries shared from a Pro workspace.
+    public var shareURL: URL { Identity.origin.appending(path: "e/\(entryId)") }
     public var ratio: Double { Double(width) / Double(height) }
     public var placeholder: CGImage? { thumbHash.map(ThumbHash.image) }
 
@@ -356,22 +350,6 @@ public struct PhotoPage: Decodable, Sendable {
 public struct PhotoMetadata: Hashable, Sendable {
     public let captured: String?
     public let geo: Photo.Geo?
-}
-
-public struct PhotoInput: Sendable {
-    public var title: String
-    public var description: String?
-    public var tags: [String]
-    public var date: String?
-    public var geo: Photo.Geo?
-
-    public init(title: String, description: String?, tags: [String], date: String?, geo: Photo.Geo?) {
-        self.title = title
-        self.description = description
-        self.tags = tags
-        self.date = date
-        self.geo = geo
-    }
 }
 
 /// A source image normalized for publication, as `media::prepare` produces it.

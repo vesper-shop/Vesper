@@ -11,6 +11,10 @@
 		A10000000000000000000022 /* VesperMarkdown in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000012 /* VesperMarkdown */; };
 		A10000000000000000000023 /* VesperUI in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000013 /* VesperUI */; };
 		A10000000000000000000026 /* Identity in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000016 /* Identity */; };
+		A10000000000000000000074 /* Consumers in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000077 /* Consumers */; };
+		A10000000000000000000075 /* VesperUI in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000078 /* VesperUI */; };
+		A10000000000000000000076 /* Identity in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000079 /* Identity */; };
+		A10000000000000000000083 /* VesperWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A10000000000000000000070 /* VesperWidgets.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,12 +32,34 @@
 			remoteGlobalIDString = A10000000000000000000006;
 			remoteInfo = Vesper;
 		};
+		A10000000000000000000085 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1000000000000000000000A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1000000000000000000007E;
+			remoteInfo = VesperWidgets;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A10000000000000000000082 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A10000000000000000000083 /* VesperWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* Vesper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vesper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000041 /* VesperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VesperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000051 /* VesperUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VesperUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000070 /* VesperWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = VesperWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -41,8 +67,17 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Vesper.entitlements,
 			);
 			target = A10000000000000000000006 /* Vesper */;
+		};
+		A1000000000000000000007A /* Exceptions for "VesperWidgets" folder in "VesperWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				VesperWidgets.entitlements,
+			);
+			target = A1000000000000000000007E /* VesperWidgets */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -63,6 +98,14 @@
 		A10000000000000000000052 /* VesperUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = VesperUITests;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000072 /* VesperWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A1000000000000000000007A /* Exceptions for "VesperWidgets" folder in "VesperWidgets" target */,
+			);
+			path = VesperWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -93,6 +136,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000000000000000000073 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000074 /* Consumers in Frameworks */,
+				A10000000000000000000075 /* VesperUI in Frameworks */,
+				A10000000000000000000076 /* Identity in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -100,6 +153,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000002 /* Vesper */,
+				A10000000000000000000072 /* VesperWidgets */,
 				A10000000000000000000042 /* VesperTests */,
 				A10000000000000000000052 /* VesperUITests */,
 				A10000000000000000000005 /* Products */,
@@ -110,6 +164,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000001 /* Vesper.app */,
+				A10000000000000000000070 /* VesperWidgets.appex */,
 				A10000000000000000000041 /* VesperTests.xctest */,
 				A10000000000000000000051 /* VesperUITests.xctest */,
 			);
@@ -126,10 +181,12 @@
 				A10000000000000000000008 /* Sources */,
 				A10000000000000000000003 /* Frameworks */,
 				A10000000000000000000009 /* Resources */,
+				A10000000000000000000082 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A10000000000000000000084 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A10000000000000000000002 /* Vesper */,
@@ -187,6 +244,31 @@
 			productReference = A10000000000000000000051 /* VesperUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		A1000000000000000000007E /* VesperWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1000000000000000000007F /* Build configuration list for PBXNativeTarget "VesperWidgets" */;
+			buildPhases = (
+				A1000000000000000000007C /* Sources */,
+				A10000000000000000000073 /* Frameworks */,
+				A1000000000000000000007D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000072 /* VesperWidgets */,
+			);
+			name = VesperWidgets;
+			packageProductDependencies = (
+				A10000000000000000000077 /* Consumers */,
+				A10000000000000000000078 /* VesperUI */,
+				A10000000000000000000079 /* Identity */,
+			);
+			productName = VesperWidgets;
+			productReference = A10000000000000000000070 /* VesperWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -198,6 +280,9 @@
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					A10000000000000000000006 = {
+						CreatedOnToolsVersion = 27.2;
+					};
+					A1000000000000000000007E = {
 						CreatedOnToolsVersion = 27.2;
 					};
 					A10000000000000000000044 = {
@@ -229,6 +314,7 @@
 			projectRoot = "";
 			targets = (
 				A10000000000000000000006 /* Vesper */,
+				A1000000000000000000007E /* VesperWidgets */,
 				A10000000000000000000044 /* VesperTests */,
 				A10000000000000000000054 /* VesperUITests */,
 			);
@@ -251,6 +337,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A10000000000000000000056 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1000000000000000000007D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -281,6 +374,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1000000000000000000007C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -293,6 +393,12 @@
 			isa = PBXTargetDependency;
 			target = A10000000000000000000006 /* Vesper */;
 			targetProxy = A1000000000000000000005B /* PBXContainerItemProxy */;
+		};
+		A10000000000000000000084 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilter = ios;
+			target = A1000000000000000000007E /* VesperWidgets */;
+			targetProxy = A10000000000000000000085 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -348,6 +454,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = Vesper/Vesper.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Vesper/Vesper.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
@@ -379,6 +487,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = Vesper/Vesper.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Vesper/Vesper.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
@@ -463,6 +573,52 @@
 			};
 			name = Release;
 		};
+		A10000000000000000000080 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = VesperWidgets/VesperWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = VesperWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Vesper;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.youfind.vesper.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A10000000000000000000081 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = VesperWidgets/VesperWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = VesperWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Vesper;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.youfind.vesper.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -502,6 +658,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		A1000000000000000000007F /* Build configuration list for PBXNativeTarget "VesperWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000080 /* Debug */,
+				A10000000000000000000081 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -525,6 +690,18 @@
 			productName = VesperUI;
 		};
 		A10000000000000000000016 /* Identity */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Identity;
+		};
+		A10000000000000000000077 /* Consumers */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Consumers;
+		};
+		A10000000000000000000078 /* VesperUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VesperUI;
+		};
+		A10000000000000000000079 /* Identity */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Identity;
 		};

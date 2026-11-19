@@ -2,11 +2,12 @@ import Consumers
 import Foundation
 import Observation
 
-/// Every photo, unfiltered: the calendar and the map cover the whole stream, independently of
-/// the Moment tab's tag filter.
+/// Every photo and when every entry happened, unfiltered: the calendar and the map cover the
+/// whole journal, independently of the other tabs' filters.
 @Observable
 final class AtlasSession {
     private(set) var photos: [Photo] = []
+    private(set) var dates: [Date] = []
     private(set) var loading = true
     private(set) var problem: LoadProblem?
 
@@ -14,15 +15,22 @@ final class AtlasSession {
 
     var months: [AtlasMonth] {
         let calendar = Calendar.current
-        // The current month always shows, so today has a place even before its first photo.
-        var months: [Date: [Date: [Photo]]] = [calendar.dateInterval(of: .month, for: .now)!.start: [:]]
-        for photo in photos {
+        // The current month always shows, so today has a place even before its first entry.
+        var photos: [Date: [Date: [Photo]]] = [calendar.dateInterval(of: .month, for: .now)!.start: [:]]
+        var entries: [Date: [Date: Int]] = [:]
+        for photo in self.photos {
             guard let date = photo.date else { continue }
-            let month = calendar.dateInterval(of: .month, for: date)!.start
-            months[month, default: [:]][calendar.startOfDay(for: date), default: []].append(photo)
+            photos[calendar.dateInterval(of: .month, for: date)!.start, default: [:]][calendar.startOfDay(for: date), default: []].append(photo)
         }
-        return months.keys.sorted(by: >).map { month in
-            AtlasMonth(month: month, days: months[month]!.mapValues { $0.sorted { $0.date! < $1.date! } })
+        for date in dates {
+            entries[calendar.dateInterval(of: .month, for: date)!.start, default: [:]][calendar.startOfDay(for: date), default: 0] += 1
+        }
+        return Set(photos.keys).union(entries.keys).sorted(by: >).map { month in
+            AtlasMonth(
+                month: month,
+                days: (photos[month] ?? [:]).mapValues { $0.sorted { $0.date! < $1.date! } },
+                entries: entries[month] ?? [:]
+            )
         }
     }
 
@@ -33,20 +41,20 @@ final class AtlasSession {
         loading = true
         defer { if current == generation { loading = false } }
         do {
-            var photos: [Photo] = []
-            var cursor: String?
-            repeat {
-                let page = try await Moment.list(cursor: cursor)
-                photos += page.photos
-                cursor = page.nextCursor
-            } while cursor != nil
+            async let dates = Entries.dates()
+            let photos = try await Photos.all()
+            let loaded = try await dates
             guard current == generation else { return }
             self.photos = photos
+            self.dates = loaded
             problem = nil
         } catch {
             guard current == generation, let problem = LoadProblem(error) else { return }
             self.problem = problem
-            if problem == .signedOut { photos = [] }
+            if problem == .signedOut {
+                photos = []
+                dates = []
+            }
         }
     }
 }
