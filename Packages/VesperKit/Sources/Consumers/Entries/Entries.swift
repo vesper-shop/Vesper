@@ -147,8 +147,8 @@ public enum Entries {
         return tags
     }
 
-    /// Mirrors `consumers::api::memos::strip_tags`: drops whitespace-delimited `#tag` tokens and
-    /// collapses the horizontal space they leave behind.
+    /// Drops whitespace-delimited `#tag` tokens, shown as chips instead, and collapses the
+    /// horizontal space they leave behind.
     public static func strip(_ content: String) -> String {
         let tagged: (Character) -> Bool = { $0.isLetter || $0.isNumber || "_-/".contains($0) }
         let characters = Array(content)

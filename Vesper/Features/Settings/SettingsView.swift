@@ -33,6 +33,8 @@ struct SettingsView: View {
                     Link(destination: Identity.origin) {
                         Label(Identity.origin.host()!, systemImage: "safari")
                     }
+                    Link("Privacy Policy", destination: Identity.origin.appending(path: "privacy"))
+                    Link("Terms of Use", destination: Identity.origin.appending(path: "terms"))
                 }
             }
             .formStyle(.grouped)
@@ -79,13 +81,15 @@ private struct AccountSection: View {
             }
             Button("Sign Out", role: .destructive) { Task { await signOut() } }
                 .foregroundStyle(Theme.error)
+            Link("Delete Account…", destination: URL(string: "settings#danger", relativeTo: Identity.origin)!)
+                .foregroundStyle(Theme.error)
             if let error {
                 Text(error).foregroundStyle(Theme.error)
             }
         } header: {
             Text("Account")
         } footer: {
-            Text("Signed in with your Vesper passkey; widgets and Siri use the same account.")
+            Text("Signed in with your Vesper passkey; widgets and Siri use the same account. Deleting your account opens Vesper on the web and removes every entry and photo.")
         }
         .disabled(working)
         .task {

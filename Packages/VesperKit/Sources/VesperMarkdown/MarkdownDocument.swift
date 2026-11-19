@@ -79,7 +79,7 @@ public struct MarkdownDocument: Hashable, Sendable {
         self.blocks = blocks
     }
 
-    /// Memo flavor, matching `markdown::render_memo`: every newline outside fenced code is a line
+    /// Memo flavor, matching Vesper's `renderMarkdown`: every newline outside fenced code is a line
     /// break. Two trailing spaces are CommonMark's hard break; the parser drops them at paragraph ends.
     public init(memo source: String) throws {
         var fenced = false
@@ -94,7 +94,7 @@ public struct MarkdownDocument: Hashable, Sendable {
 
     private static let detector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
 
-    /// Links bare URLs outside links and inline code, like the desktop compiler's `autolink_text`.
+    /// Links bare URLs outside links and inline code.
     private static func autolink(_ text: inout AttributedString) {
         let plain = String(text.characters)
         for match in detector.matches(in: plain, range: NSRange(plain.startIndex..., in: plain)) {

@@ -2,7 +2,6 @@ import Foundation
 import Identity
 
 struct Client {
-    /// Vesper emits ISO 8601 timestamps with milliseconds (JavaScript `toISOString`).
     static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in

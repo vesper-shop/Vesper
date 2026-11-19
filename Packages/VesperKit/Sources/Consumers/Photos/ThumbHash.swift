@@ -1,8 +1,8 @@
 import CoreGraphics
 import Foundation
 
-/// ThumbHash (Evan Wallace's reference algorithm, as the `thumbhash` crate the desktop uses): a DCT
-/// of luminance, two chroma channels and alpha, packed into a few bytes.
+/// ThumbHash (Evan Wallace's reference algorithm): a DCT of luminance, two chroma channels and
+/// alpha, packed into a few bytes.
 enum ThumbHash {
     /// `rgba` holds `width × height` RGBA pixels; both sides must be at most 100.
     static func encode(width w: Int, height h: Int, rgba: [UInt8]) -> [UInt8] {

@@ -4,14 +4,6 @@ import Security
 public enum Vault {
     private static let service = "me.youfind.vesper"
 
-    public struct Failure: LocalizedError, Sendable {
-        public let status: OSStatus
-
-        public var errorDescription: String? {
-            SecCopyErrorMessageString(status, nil) as String?
-        }
-    }
-
     /// Returns nil only when no item exists; any other Keychain status throws.
     public static func read(_ account: String) throws -> String? {
         var query = query(account)

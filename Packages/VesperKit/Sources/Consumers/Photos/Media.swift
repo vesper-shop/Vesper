@@ -3,8 +3,7 @@ import Foundation
 import ImageIO
 import UniformTypeIdentifiers
 
-/// Normalizes a source image for publication, mirroring `consumers::api::moment::media`:
-/// orientation applied, a PNG original, a 600 px JPEG thumbnail at quality 90, and a ThumbHash
+/// Orientation applied, a PNG original, a 600 px JPEG thumbnail at quality 90, and a ThumbHash
 /// from a 100 px rendition. HEIC, JPEG and PNG all decode through ImageIO.
 enum Media {
     private static let dimensionLimit = 16_384
@@ -69,8 +68,7 @@ enum Media {
         return image
     }
 
-    /// EXIF `DateTimeOriginal` as `YYYY-MM-DDTHH:MM:SS[.sub][±HH:MM]`, as `exif::captured_at`
-    /// writes it, and the signed GPS coordinates.
+    /// EXIF `DateTimeOriginal` as `YYYY-MM-DDTHH:MM:SS[.sub][±HH:MM]`, and the signed GPS coordinates.
     private static func metadata(_ properties: [CFString: Any]) -> PhotoMetadata {
         let exif = properties[kCGImagePropertyExifDictionary] as? [CFString: Any]
         var captured: String?

@@ -175,7 +175,6 @@ public struct EntryFilters: Hashable, Sendable {
     }
 }
 
-/// A PATCH body; nil fields are left unchanged.
 public struct EntryUpdate: Sendable {
     public var content: String?
     public var visibility: Entry.Visibility?
@@ -352,7 +351,6 @@ public struct PhotoMetadata: Hashable, Sendable {
     public let geo: Photo.Geo?
 }
 
-/// A source image normalized for publication, as `media::prepare` produces it.
 struct PreparedPhoto {
     let original: Data
     let thumbnail: Data

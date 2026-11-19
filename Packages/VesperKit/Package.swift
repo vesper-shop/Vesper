@@ -27,8 +27,5 @@ let package = Package(
                 .product(name: "MapLibre", package: "maplibre-gl-native-distribution", condition: .when(platforms: [.iOS])),
             ]
         ),
-        .testTarget(name: "IdentityTests", dependencies: ["Identity", "Vault"]),
-        .testTarget(name: "ConsumersTests", dependencies: ["Consumers"]),
-        .testTarget(name: "VesperMarkdownTests", dependencies: ["VesperMarkdown"]),
     ]
 )

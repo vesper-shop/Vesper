@@ -113,8 +113,6 @@ public actor Identity {
             }
             if let rotated = response.refreshToken {
                 try store(Session(refreshToken: rotated, account: session.account))
-                // Saving again moves a client kept from before keychain sharing to where widgets read.
-                try Vault.save(client, for: clientAccount)
             }
             return response.accessToken
         }

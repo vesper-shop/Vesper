@@ -17,8 +17,10 @@ Open `Vesper.xcodeproj` in Xcode 26 and press ⌘R, or:
 
 ```sh
 xcodebuild -project Vesper.xcodeproj -scheme Vesper -destination "platform=iOS Simulator,name=iPhone 18 Pro" build
-cd Packages/VesperKit && swift test
+xcodebuild -project Vesper.xcodeproj -scheme Vesper -destination "platform=iOS Simulator,name=iPhone 18 Pro" test -only-testing:VesperTests
 ```
+
+Every test lives in `Tests/`: unit tests in `Tests/Unit`, laid out like the sources, and UI tests in `Tests/UI`.
 
 SwiftUI and Liquid Glass, with the shared logic in `Packages/VesperKit` ·
 the promo film in [`Design/Promo`](Design/Promo/AGENTS.md)
